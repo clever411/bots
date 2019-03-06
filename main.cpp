@@ -300,7 +300,7 @@ int main( int argc, char *argv[] )
 					agestring.change( "age: " + to_string(age) );
 					updateflag = false;
 					break;
-				case Keyboard::Add:
+				case Keyboard::Add: case Keyboard::Up:
 					if( updatespeed < 100.0 )
 					{
 						if(updatespeed > 9.75)
@@ -316,7 +316,7 @@ int main( int argc, char *argv[] )
 						);
 					}
 					break;
-				case Keyboard::Subtract:
+				case Keyboard::Subtract: case Keyboard::Down:
 					if(updatespeed > 0.15)
 					{
 						if(updatespeed > 10.5)
