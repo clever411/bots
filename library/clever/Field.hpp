@@ -2,6 +2,7 @@
 #define CLEVER_FIELD_HPP
 
 #include <algorithm>
+#include <cstring>
 #include <utility>
 
 
@@ -26,6 +27,15 @@ struct Field
 	// data-members
 	int w = 0, h = 0;
 	value_type *d = nullptr;
+	
+	
+	
+	
+	
+	// init, free
+	inline Field &init();
+	inline Field &init(int neww, int newh);
+	inline Field &free();
 
 
 
@@ -44,7 +54,6 @@ struct Field
 
 
 	// correct
-	
 	inline void correct(int &x, int &y) const;
 
 	template<class Point>
@@ -82,6 +91,7 @@ struct Field
 	inline value_type &at(std::pair<int, int> const &p);
 
 
+
 		// tape at simple
 	inline value_type &tapeAt(int x, int y);
 	inline value_type const &tapeAt(int x, int y) const;
@@ -109,6 +119,7 @@ struct Field
 	) const;
 
 
+
 		// operator at
 	inline value_type const *operator[](int n) const;
 	inline value_type *operator[](int n);
@@ -117,9 +128,13 @@ struct Field
 
 
 
-	// clear
+	// clear & zeroize
 	inline void clear();
 	inline void clear(value_type const &value);
+
+	inline void zeroize();
+	inline void zeroize(int line);
+	inline void zeroize(int bline, int n);
 
 
 

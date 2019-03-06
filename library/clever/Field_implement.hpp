@@ -1,3 +1,28 @@
+// init
+template<typename ValueType>
+inline Field<ValueType> &
+Field<ValueType>::init()
+{
+	d = new value_type[w*h];
+	return *this;
+}
+
+template<typename ValueType>
+inline Field<ValueType> &
+Field<ValueType>::init(int neww, int newh)
+{
+	w = neww; h = newh;
+	d = new value_type[w*h];
+	return *this;
+}
+
+template<typename ValueType>
+inline Field<ValueType> &
+Field<ValueType>::free()
+{
+	delete[] d;
+	return *this;
+}
 
 
 
@@ -216,7 +241,7 @@ Field<ValueType>::operator[](int n)
 
 
 
-// clear
+// clear & zeroize
 template<typename ValueType>
 inline void
 Field<ValueType>::clear()
@@ -232,6 +257,34 @@ Field<ValueType>::clear(value_type const &value)
 {
 	for(value_type *b = d, *e = d+w*h; b != e; ++b)
 		*b = value;
+	return;
+}
+
+
+
+template<typename ValueType>
+inline void
+Field<ValueType>::zeroize()
+{
+	memset(d, 0, sizeof(value_type)*w*h);
+	return;
+}
+
+
+template<typename ValueType>
+inline void
+Field<ValueType>::zeroize(int line)
+{
+	memset(d+line*w, 0, sizeof(value_type)*w);
+	return;
+}
+
+
+template<typename ValueType>
+inline void
+Field<ValueType>::zeroize(int bline, int n)
+{
+	memset(d+bline*w, 0, sizeof(value_type)*w*n);
 	return;
 }
 

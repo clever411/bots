@@ -21,11 +21,27 @@ rerun: clean $(EXECUTABLE)
 
 
 
-$(EXECUTABLE): main.o
-	g++ $(LDFLAGS) -o $(EXECUTABLE) main.o $(LIBS)
+$(EXECUTABLE): main.o define.o init.o life.o CellPrinter.o
+	g++ $(LDFLAGS) -o $(EXECUTABLE) \
+	main.o define.o init.o life.o CellPrinter.o $(LIBS)
 
 main.o: main.cpp
 	g++ $(CFLAGS) -o main.o main.cpp
+
+define.o: define.cpp
+	g++ $(CFLAGS) -o define.o define.cpp
+
+init.o: init.cpp
+	g++ $(CFLAGS) -o init.o init.cpp
+
+life.o: life.cpp
+	g++ $(CFLAGS) -o life.o life.cpp
+
+CellPrinter.o: CellPrinter.cpp
+	g++ $(CFLAGS) -o CellPrinter.o CellPrinter.cpp
+
+
+
 
 
 
