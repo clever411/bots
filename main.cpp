@@ -99,8 +99,6 @@ printer_type &printer_type::set(int value)
 // init functions
 void init_window( RenderWindow &window )
 {
-	vmode.width = 1280;
-	vmode.height = 720;
 	window.create(vmode, TITLE, Style::None);
 	window.setPosition({0u, 0u});
 	window.setFramerateLimit(FRAMERATE_LIMIT);
