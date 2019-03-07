@@ -116,15 +116,19 @@ int main( int argc, char *argv[] )
 		}
 
 			// mouse press
-		if( Mouse::isButtonPressed( Mouse::Button::Left ) )
+		if(
+			bool isleft = Mouse::isButtonPressed( Mouse::Button::Left );
+			isleft || Mouse::isButtonPressed( Mouse::Button::Right )
+		)
 		{
 			field.at(
 				adapter.cursorOn(
 					Vector2f(Mouse::getPosition(window)) -
 					adapter.getPosition()
 				)
-			) = 6;
+			) = isleft ? 1 : 0;
 		}
+
 
 			// key press
 		if( Keyboard::isKeyPressed( Keyboard::C ) )
