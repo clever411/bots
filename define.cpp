@@ -14,10 +14,12 @@ char const *TITLE = "Application";
 unsigned int FRAMERATE_LIMIT = 144u;
 
 Color const backgroundcolor(0xfd, 0xea, 0xa8);
-Color const gridcolor(0xec, 0xc9, 0x97);
-Color const maincolor(0x30, 0x21, 0x12);
+Color const gridcolor(0xed, 0xd1, 0x9c);
+Color const maincolor(0x5b, 0x3a, 0x29);
+// Color const maincolor(0x30, 0x21, 0x12);
 
 Font font;
+unsigned int FONT_SIZE = 50u;
 Text agelabel;
 Text speedlabel;
 

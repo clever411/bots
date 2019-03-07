@@ -61,16 +61,17 @@ void init_agelabel()
 	agelabel.setFont( font );
 	agelabel.setFillColor( maincolor );
 	agelabel.setString( agestring.get() );
-	agelabel.setCharacterSize( 60 );
+	agelabel.setCharacterSize( FONT_SIZE );
 
 	// position
+	auto bounds = agelabel.getLocalBounds();
 	agelabel.setOrigin(
-		agelabel.getGlobalBounds().width / 2.0,
-		0
+		bounds.width / 2.0,
+		bounds.height
 	);
 	agelabel.setPosition(
 		window.getSize().x / 3.0,
-		adapter.getSize().y + 10.0
+		( window.getSize().y + adapter.getSize().y ) / 2.0
 	);
 	return;
 }
@@ -80,17 +81,18 @@ void init_speedlabel()
 	// main
 	speedlabel.setFont( font );
 	speedlabel.setFillColor( maincolor );
-	speedlabel.setCharacterSize( 60 );
+	speedlabel.setCharacterSize( FONT_SIZE );
 	speedlabel.setString( speedstring.get() );
 
 	// position
+	auto bounds = speedlabel.getGlobalBounds();
 	speedlabel.setOrigin(
-		speedlabel.getGlobalBounds().width / 2.0,
-		0
+		bounds.width / 2.0,
+		bounds.height
 	);
 	speedlabel.setPosition(
 		window.getSize().x * 2.0 / 3.0,
-		adapter.getSize().y + 10.0
+		( window.getSize().y + adapter.getSize().y ) / 2.0
 	);
 
 	return;

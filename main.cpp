@@ -36,9 +36,7 @@ int main( int argc, char *argv[] )
 	// objects
 	bool updateflag = false;
 	double updatespeed = 1.0f; // count per second
-	speedstring.change(
-		"speed: " + cutzero( to_string(updatespeed) )
-	);
+	speedstring = "speed: " + cutzero( to_string(updatespeed) );
 	double updateperiod = 1.0 / updatespeed;
 	double stage = 0.0f;
 	Stopwatch<chrono::system_clock> watch;
@@ -71,7 +69,7 @@ int main( int argc, char *argv[] )
 				case Keyboard::R:
 					field.zeroize();
 					age = 0;
-					agestring.change( "age: " + to_string(age) );
+					agestring = "age: " + to_string(age);
 					updateflag = false;
 					break;
 				case Keyboard::Add: case Keyboard::Up:
@@ -85,9 +83,7 @@ int main( int argc, char *argv[] )
 							else
 								updatespeed += 0.1;
 						updateperiod = 1.0 / updatespeed;
-						speedstring.change(
-							"speed: " + cutzero(to_string(updatespeed))
-						);
+						speedstring = "speed: " + cutzero( to_string(updatespeed) );
 					}
 					break;
 				case Keyboard::Subtract: case Keyboard::Down:
@@ -101,9 +97,7 @@ int main( int argc, char *argv[] )
 							else
 								updatespeed -= 0.1;
 						updateperiod = 1.0 / updatespeed;
-						speedstring.change(
-							"speed: " + cutzero(to_string(updatespeed))
-						);
+						speedstring = "speed: " + cutzero( to_string(updatespeed) );
 					}
 					break;
 				case Keyboard::Space:
@@ -152,11 +146,15 @@ int main( int argc, char *argv[] )
 		if( updateflag )
 		{
 			stage += timepass;
-			while( stage >= updateperiod )
+			if( stage >= updateperiod )
 			{
-				stage -= updateperiod;
-				update_field();
-				++age;
+				do
+				{
+					stage -= updateperiod;
+					update_field();
+					++age;
+				}
+				while( stage >= updateperiod );
 				agestring.change( "age: " + to_string(age) );
 			}
 		}

@@ -38,6 +38,7 @@ extern sf::Color const gridcolor;
 extern sf::Color const maincolor;
 
 extern sf::Font font;
+extern unsigned int FONT_SIZE;
 extern sf::Text agelabel;
 extern sf::Text speedlabel;
 

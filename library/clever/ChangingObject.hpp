@@ -27,18 +27,18 @@ public:
 
 
 	// change
-	void change(value_type const &newvalue)
+	value_type &change(value_type const &newvalue)
 	{
 		_value = newvalue;
 		_ischanged = true;
-		return;
+		return _value;
 	}
 
-	void change(value_type &&newvalue)
+	value_type &change(value_type &&newvalue)
 	{
 		_value = std::move(newvalue);
 		_ischanged = true;
-		return;
+		return _value;
 	}
 		
 	value_type& change()
@@ -46,6 +46,21 @@ public:
 		_ischanged = true;
 		return _value;
 	}	
+
+	value_type &operator=(value_type const &newvalue)
+	{
+		_value = newvalue;
+		_ischanged = true;
+		return _value;
+	}
+
+	value_type &operator=(value_type &&newvalue)
+	{
+		_value = std::move(newvalue);
+		_ischanged = true;
+		return _value;
+	}
+
 
 
 	// get
