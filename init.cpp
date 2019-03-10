@@ -23,11 +23,10 @@ void init_window()
 
 void init_field()
 {
-	field.init(
+	field.init_botfield(
 		DEFAULT_FIELD_WIDTH,
 		DEFAULT_FIELD_HEIGHT
-	).
-	zeroize();
+	);
 	return;
 }
 
@@ -43,7 +42,8 @@ void init_adapter()
 	).
 	update().
 	setGridColor(Color(gridcolor)).
-	setDrawBoundsEnable(false);
+	setDrawBoundsEnable(false).
+	update();
 
 
 	return;

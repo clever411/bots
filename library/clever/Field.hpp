@@ -53,13 +53,21 @@ struct Field
 
 
 
-	// correct
+	// correct & get
 	inline void correct(int &x, int &y) const;
 
 	template<class Point>
 	inline void correct(Point &p) const;
 	
 	inline void correct(std::pair<int, int> &p) const;
+
+
+	void inline get(value_type const *el, int &x, int &y) const;
+
+	template<class Point>
+	void inline get(value_type const *el, Point &p) const;
+
+	inline void get(value_type const *el, std::pair<int, int> &p) const;
 
 
 

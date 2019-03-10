@@ -7,7 +7,6 @@
 
 #include "declare.hpp"
 #include "init.hpp"
-#include "life.hpp"
 
 
 using namespace clever;
@@ -117,16 +116,41 @@ int main( int argc, char *argv[] )
 
 			// mouse press
 		if(
-			bool isleft = Mouse::isButtonPressed( Mouse::Button::Left );
-			isleft || Mouse::isButtonPressed( Mouse::Button::Right )
+			bool isbkey = Keyboard::isKeyPressed( Keyboard::B ),
+			isikey = Keyboard::isKeyPressed( Keyboard::I ),
+			isleft = Mouse::isButtonPressed( Mouse::Button::Left );
+			isbkey || isikey || isleft || Mouse::isButtonPressed( Mouse::Button::Right )
 		)
 		{
-			field.at(
-				adapter.cursorOn(
-					Vector2f(Mouse::getPosition(window)) -
-					adapter.getPosition()
-				)
-			) = isleft ? 1 : 0;
+			auto point = adapter.cursorOn(
+				Vector2f(Mouse::getPosition(window)) -
+				adapter.getPosition()
+			);
+			if(field.isValid(point))
+			{
+				auto &cell = field.at(point);
+				if(isbkey)
+					field.push(
+						point.first, point.second,
+						new Bot{field.BUD_PRICE, 0}
+					);
+				else if (isikey)
+				{
+					if(cell.bot)
+					{
+						cout << "energy: " << cell.bot->energy << endl;
+						cout << "age: " << cell.bot->age << endl;
+						std::cout << "-----------------------------------" << std::endl;
+					}
+				}
+				else if(isleft)
+					cell.energy = 100.0f;
+				else
+					field.push(
+						point.first, point.second,
+						new Plant(Plant::DEFAULT)
+					);
+			}
 		}
 
 
@@ -155,14 +179,14 @@ int main( int argc, char *argv[] )
 				do
 				{
 					stage -= updateperiod;
-					update_field();
+					field.update_field();
 					++age;
 				}
 				while( stage >= updateperiod );
 				agestring.change( "age: " + to_string(age) );
 			}
+			adapter.update();
 		}
-		adapter.update();
 
 			// update labels
 		if( agestring.isChanged() )

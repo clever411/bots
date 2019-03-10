@@ -7,19 +7,25 @@
 
 #include <clever/ChangingObject.hpp>
 #include <clever/Field.hpp>
+#include <clever/SFML/CellPrinter.hpp>
 #include <clever/SFML/FieldAdapter.hpp>
 
-#include "CellPrinter.hpp"
+#include "bot_field.hpp"
+
+
+
+
+
+
 
 
 
 
 
 // types
-typedef int value_type;
-typedef CellPrinter printer_type;
-typedef clever::Field<value_type> field_type;
-typedef clever::FieldAdapter<value_type, printer_type> adapter_type;
+typedef clever::CellPrinter<Cell> printer_type;
+typedef BotField field_type;
+typedef clever::FieldAdapter<Cell, printer_type> adapter_type;
 typedef clever::ChangingObject<std::string> statstring_type;
 
 

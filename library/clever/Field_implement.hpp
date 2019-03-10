@@ -97,6 +97,38 @@ inline void Field<ValueType>::correct(std::pair<int, int> &p) const
 }
 
 
+template<typename ValueType>
+void inline Field<ValueType>::get(
+	typename Field<ValueType>::value_type const *el, int &x, int &y
+) const
+{
+	int const dis = el-d;
+	x = dis%w; y = dis/w;
+	return;
+}
+
+template<typename ValueType> template<class Point>
+void inline Field<ValueType>::get(
+	typename Field<ValueType>::value_type const *el, Point &p
+) const
+{
+	int const dis = el-d;
+	p.x = dis%w; p.y = dis/w;
+	return;
+}
+
+template<typename ValueType>
+inline void Field<ValueType>::get(
+	typename Field<ValueType>::value_type const *el,
+	std::pair<int, int> &p
+) const
+{
+	int const dis = el-d;
+	p.first = dis%w; p.second = dis/w;
+	return;
+}
+
+
 
 
 
