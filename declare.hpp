@@ -45,8 +45,14 @@ extern sf::Color const maincolor;
 
 extern sf::Font font;
 extern unsigned int FONT_SIZE;
-extern sf::Text agelabel;
-extern sf::Text speedlabel;
+extern unsigned int EN_FONT_SIZE;
+extern sf::Text
+	agelabel,
+	speedlabel,
+	groundenlabel,
+	botenlabel,
+	plantenlabel,
+	summenlabel;
 
 extern adapter_type adapter;
 
@@ -57,8 +63,13 @@ extern field_type field;
 extern int const DEFAULT_FIELD_WIDTH;
 extern int const DEFAULT_FIELD_HEIGHT;
 
-extern statstring_type agestring;
-extern statstring_type speedstring;
+extern statstring_type
+	agestring,
+	speedstring,
+	groundenstring,
+	botenstring,
+	plantenstring,
+	summenstring;
 
 
 

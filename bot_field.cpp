@@ -1,5 +1,6 @@
 #include "bot_field.hpp"
 
+#include <cmath>
 #include <iostream>
 
 
@@ -50,15 +51,19 @@ void BotField::init_botfield(int width, int height)
 	return;
 }
 
+void BotField::reset()
+{
+	clear(Cell::DEFAULT);
+	bots.clear();
+	plants.clear();
+}
+
 
 void BotField::update_field()
 {
 	update_ground();
-	// first bots becouse they eating plants
-	if(!bots.empty())
-		update_bots();
-	if(!plants.empty())
-		update_plants();
+	update_bots(); // first is bots becouse they eating plants
+	update_plants();
 
 	return;
 }
@@ -150,8 +155,11 @@ void BotField::update_bots()
 		
 		// bud
 		if(
-			bot->energy > BUD_REQ // &&
-			// (bot->energy - BUD_REQ) / (BOT_MAXENERGY - BUD_REQ) > realdis_(dre_)
+			bot->energy > BUD_REQ &&
+			sqrt(
+				(bot->energy - BUD_REQ) /
+				(BOT_MAXENERGY - BUD_REQ)
+			) > realdis_(dre_)
 		)
 		{
 			count = 0;
@@ -219,6 +227,7 @@ void BotField::update_bots()
 
 void BotField::update_plants()
 {
+	// update plants
 	double delta;
 	Cell *cell;
 	Plant *plant;
@@ -240,6 +249,26 @@ void BotField::update_plants()
 		cell->energy -= delta;
 		plant->energy += delta;
 	}
+
+
+
+	// sow plants
+	for(auto b = begin(), e = end(); b != e; ++b)
+	{
+		if( b->plant || b->bot )
+			continue;
+		if(
+			( b->energy / DEFAULT_GROUND_ENERGY ) *
+			PLANT_BURN_CHANCE > realdis_(dre_)
+		)
+		{
+			b->plant = new Plant{ b->energy };
+			b->energy = 0.0;
+			plants.push_back(b);
+		}
+	}
+
+
 
 	return;
 }
@@ -263,6 +292,35 @@ bool BotField::push(int x, int y, Plant *plant)
 	cell->plant = plant;
 	plants.push_back(cell);
 	return true;
+}
+
+
+void BotField::get_energy(
+	double &summen, double &grounden,
+	double &planten, double &boten
+) const
+{
+	grounden = 0.0;
+	for(auto b = cbegin(), e = cend(); b != e; ++b)
+	{
+		grounden += b->energy;
+	}
+
+	boten = 0.0;
+	for(auto i : bots)
+	{
+		boten += i->bot->energy;
+	}
+
+	planten = 0.0;
+	for(auto i : plants)
+	{
+		planten += i->plant->energy;
+	}
+
+	summen = grounden + boten + planten;
+
+	return;
 }
 
 

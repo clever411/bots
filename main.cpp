@@ -27,20 +27,47 @@ int main( int argc, char *argv[] )
 	init_font();
 	init_agelabel();
 	init_speedlabel();
+	init_enslabel();
 	
 	
 	
 	
 
 	// objects
-	bool updateflag = false;
+	bool
+		up = false,
+		upfield = false,
+		upage = false,
+		upspeed = true;
+
+	bool
+		ikeywaspush = false,
+		bkeywaspush = false;
+
 	double updatespeed = 1.0f; // count per second
-	speedstring = "speed: " + cutzero( to_string(updatespeed) );
 	double updateperiod = 1.0 / updatespeed;
 	double stage = 0.0f;
+
 	Stopwatch<chrono::system_clock> watch;
-	double timepass = 0.0f;
+	double timepass = 0.0f; // in seconds
+
 	int age = 0;
+
+	double
+		summen, grounden,
+		planten, boten;
+
+	int LABELS_SIZE = 6;
+	Text *labels[] = {
+		&agelabel, &speedlabel,
+		&summenlabel, &groundenlabel,
+		&plantenlabel, &botenlabel
+	};
+	statstring_type *strings[] = {
+		&agestring, &speedstring,
+		&summenstring, &groundenstring,
+		&plantenstring, &botenstring
+	};
 
 
 
@@ -52,7 +79,7 @@ int main( int argc, char *argv[] )
 	while(window.isOpen())
 	{
 		// handle events
-			// main
+			// usual key
 		if(window.pollEvent(event))
 		{
 
@@ -66,10 +93,11 @@ int main( int argc, char *argv[] )
 					window.close();
 					continue;
 				case Keyboard::R:
-					field.zeroize();
+					field.reset();
 					age = 0;
-					agestring = "age: " + to_string(age);
-					updateflag = false;
+					up = false;
+					upfield = true;
+					upage = true;
 					break;
 				case Keyboard::Add: case Keyboard::Up:
 					if( updatespeed < 100.0 )
@@ -82,7 +110,7 @@ int main( int argc, char *argv[] )
 							else
 								updatespeed += 0.1;
 						updateperiod = 1.0 / updatespeed;
-						speedstring = "speed: " + cutzero( to_string(updatespeed) );
+						upspeed = true;
 					}
 					break;
 				case Keyboard::Subtract: case Keyboard::Down:
@@ -96,11 +124,11 @@ int main( int argc, char *argv[] )
 							else
 								updatespeed -= 0.1;
 						updateperiod = 1.0 / updatespeed;
-						speedstring = "speed: " + cutzero( to_string(updatespeed) );
+						upspeed = true;
 					}
 					break;
 				case Keyboard::Space:
-					updateflag = !updateflag;
+					up = !up;
 					stage = 0.0f;
 					break;
 				default:
@@ -114,10 +142,10 @@ int main( int argc, char *argv[] )
 
 		}
 
-			// mouse press
+			// key press on field
 		if(
-			bool isbkey = Keyboard::isKeyPressed( Keyboard::B ),
-			isikey = Keyboard::isKeyPressed( Keyboard::I ),
+			bool isikey = Keyboard::isKeyPressed( Keyboard::I ),
+			isbkey = Keyboard::isKeyPressed( Keyboard::B ),
 			isleft = Mouse::isButtonPressed( Mouse::Button::Left );
 			isbkey || isikey || isleft || Mouse::isButtonPressed( Mouse::Button::Right )
 		)
@@ -129,36 +157,47 @@ int main( int argc, char *argv[] )
 			if(field.isValid(point))
 			{
 				auto &cell = field.at(point);
-				if(isbkey)
-					field.push(
-						point.first, point.second,
-						new Bot{field.BUD_PRICE, 0}
-					);
-				else if (isikey)
+				if(isikey)
 				{
-					if(cell.bot)
+					if(!ikeywaspush)
 					{
-						cout << "energy: " << cell.bot->energy << endl;
-						cout << "age: " << cell.bot->age << endl;
-						std::cout << "-----------------------------------" << std::endl;
+						ikeywaspush = true;
+						if(cell.bot)
+						{
+							cout << "it's bot\n"
+								"energy: " << cell.bot->energy << "\n"
+								"age: " << cell.bot->age << "\n"
+								"------------------------------" << endl;
+						}
+						else if(cell.plant)
+						{
+							cout << "it's plant\n"
+								"energy: " << cell.plant->energy << "\n"
+								"------------------------------" << endl;
+						}
 					}
 				}
-				else if(isleft)
-					cell.energy = 100.0f;
 				else
-					field.push(
-						point.first, point.second,
-						new Plant(Plant::DEFAULT)
-					);
+				{
+					upfield = true;
+					if(isbkey)
+						field.push(
+							point.first, point.second,
+							new Bot{field.BUD_PRICE, 0}
+						);
+					else if(isleft)
+						cell.energy = BotField::DEFAULT_GROUND_ENERGY;
+					else
+						field.push(
+							point.first, point.second,
+							new Plant(Plant::DEFAULT)
+						);
+				}
 			}
 		}
-
-
-			// key press
-		if( Keyboard::isKeyPressed( Keyboard::C ) )
+		else
 		{
-			window.close();
-			continue;
+			ikeywaspush = bkeywaspush = false;
 		}
 
 
@@ -170,8 +209,9 @@ int main( int argc, char *argv[] )
 		>( watch.stop().duration() ).count();
 		watch.reset().start();
 
+
 			// update field
-		if( updateflag )
+		if( up )
 		{
 			stage += timepass;
 			if( stage >= updateperiod )
@@ -183,24 +223,59 @@ int main( int argc, char *argv[] )
 					++age;
 				}
 				while( stage >= updateperiod );
-				agestring.change( "age: " + to_string(age) );
+				upfield = true;
+				upage = true;
 			}
-			adapter.update();
 		}
 
-			// update labels
-		if( agestring.isChanged() )
-			agelabel.setString( agestring.get() );
-		if( speedstring.isChanged() )
-			speedlabel.setString( speedstring.get() );
+			// up strings
+		if( upage )
+		{
+			agestring = "age: " + to_string(age);
+			upage = false;
+		}
+
+		if( upspeed )
+		{
+			speedstring = "speed: " + cutzero( to_string(updatespeed) );
+			upspeed = false;
+		}
+
+		if( upfield )
+		{
+			field.get_energy(summen, grounden, planten, boten);
+			summenstring =
+				"summ energy:   " +
+				to_string( int( round(summen) ) );
+
+			groundenstring =
+				"ground energy: " +
+				cutzero( to_string( int( grounden * 10.0 ) / 10.0 ) );
+
+			plantenstring =
+				"plants energy: " +
+				cutzero( to_string( int( planten * 10.0 ) / 10.0 ) );
+
+			botenstring =
+				"bots energy:   " +
+				cutzero( to_string( int( boten * 10.0 ) / 10.0 ) );
+
+			adapter.update();
+			upfield = false;
+		}
+
+			// update text labels
+		for(int i = 0; i < LABELS_SIZE; ++i)
+			if( strings[i]->isChanged() )
+				labels[i]->setString( strings[i]->get() );
 
 
 
 		// draw
 		window.clear( Color(backgroundcolor) );
-		window.draw(adapter);
-		window.draw(agelabel);
-		window.draw(speedlabel);
+		window.draw( adapter );
+		for(auto i : labels)
+			window.draw(*i);
 		window.display();
 	}
 	

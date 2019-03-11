@@ -70,9 +70,10 @@ void init_agelabel()
 		bounds.height
 	);
 	agelabel.setPosition(
-		window.getSize().x / 3.0,
+		window.getSize().x / 8.0,
 		( window.getSize().y + adapter.getSize().y ) / 2.0
 	);
+
 	return;
 }
 
@@ -91,9 +92,50 @@ void init_speedlabel()
 		bounds.height
 	);
 	speedlabel.setPosition(
-		window.getSize().x * 2.0 / 3.0,
+		window.getSize().x / 8.0 * 3.0,
 		( window.getSize().y + adapter.getSize().y ) / 2.0
 	);
+
+	return;
+}
+
+void init_enslabel()
+{
+	// objects
+	Text *labels[] = {
+	 	&summenlabel, &groundenlabel,
+		&plantenlabel, &botenlabel
+	};
+	statstring_type *strings[] = {
+		&summenstring, &groundenstring,
+		&plantenstring, &botenstring
+	};
+	int i = 0;
+	auto winsize = window.getSize();
+	auto adsize = adapter.getSize();
+	double r = ( winsize.y - adsize.y );
+
+	for(auto l : labels)
+	{
+		l->setFont(font);
+		l->setFillColor(maincolor);
+		l->setCharacterSize(EN_FONT_SIZE);
+		l->setString( strings[i]->get() );
+
+		auto bounds = l->getGlobalBounds();
+		l->setOrigin(
+			bounds.width / 2.0,
+			bounds.height
+		);
+		l->setPosition(
+			winsize.x / 8.0 * ( 5 + i/2*2 ),
+			adsize.y + r * (1+i%2) / 3
+		);
+
+		++i;
+	}
+
+
 
 	return;
 }

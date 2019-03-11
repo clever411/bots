@@ -51,15 +51,17 @@ struct BotField: public clever::Field<Cell>
 	};
 
 	static constexpr double const
+		DEFAULT_GROUND_ENERGY = 75.0,
 		SMOOTH = 0.5,
-		PLANT_TAKE_FROM_EATH = 0.2,
-		PLANT_TAKE_TO_SELF = 0.3,
-		PLANT_MAXENERGY = 200.0,
-		BOT_MAXENERGY = 400.0,
-		BUD_REQ = 200.0,
-		BUD_PRICE = 100.0,
+		PLANT_TAKE_FROM_EATH = 0.25,
+		PLANT_TAKE_TO_SELF = 0.2,
+		PLANT_MAXENERGY = 400.0,
+		PLANT_BURN_CHANCE = 0.001,
+		BOT_MAXENERGY = 1500.0,
+		BUD_REQ = 750.0,
+		BUD_PRICE = 500.0,
 		STEP_PRICE = 0.2,
-		AGE_TAX = 0.0025;
+		AGE_TAX = 0.005;
 	
 	
 	
@@ -76,6 +78,7 @@ struct BotField: public clever::Field<Cell>
 
 	// functions
 	void init_botfield(int wedth, int height);
+	void reset();
 
 	void update_field();
 	void update_ground();
@@ -84,6 +87,11 @@ struct BotField: public clever::Field<Cell>
 	
 	bool push(int x, int y, Bot *bot);
 	bool push(int x, int y, Plant *plant);
+
+	void get_energy(
+		double &summen, double &grounden,
+		double &planten, double &boten
+	) const;
 
 
 

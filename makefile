@@ -1,5 +1,5 @@
 EXECUTABLE = main
-CFLAGS = -std=gnu++17 -c -Wall -g3 -DDEBUG -I./library
+CFLAGS = -std=gnu++17 -c -O5 -DDEBUG -I./library
 LDFLAGS =
 LIBS = -lsfml-graphics -lsfml-system -lsfml-window
 

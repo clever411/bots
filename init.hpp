@@ -11,6 +11,7 @@ void init_adapter();
 void init_font();
 void init_agelabel();
 void init_speedlabel();
+void init_enslabel();
 
 
 
