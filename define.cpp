@@ -19,7 +19,7 @@ clever::CellPrinter<Cell>::set( Cell const &cell )
 	double k;
 	if(cell.bot)
 	{
-		k = cell.bot->energy / BotField::BOT_MAXENERGY;
+		k = cell.bot->energy / Bot::MAX_ENERGY;
 		setFillColor( sf::Color(
 			0xff - int(k > 0.5 ? 0xff*(k-0.5) : 0),
 			WHITE - fun( int(0xff * 2*k) ),
@@ -29,7 +29,7 @@ clever::CellPrinter<Cell>::set( Cell const &cell )
 	}
 	else if(cell.plant)
 	{
-		k = cell.plant->energy / BotField::PLANT_MAXENERGY;
+		k = cell.plant->energy / Plant::MAX_ENERGY;
 		setFillColor( sf::Color(
 			WHITE - fun( int(0xff * 2*k) ),
 			0xff - int(k > 0.5 ? 0xff*(k-0.5) : 0),
@@ -39,7 +39,7 @@ clever::CellPrinter<Cell>::set( Cell const &cell )
 	}
 	else
 	{
-		k = cell.energy / BotField::DEFAULT_GROUND_ENERGY;
+		k = cell.energy / Cell::DEFAULT_GROUND_ENERGY;
 		setFillColor( sf::Color(
 			0, 0, 0, int(255*k)
 		) );
@@ -54,7 +54,7 @@ clever::CellPrinter<Cell>::set( Cell const &cell )
 // SFML
 RenderWindow window;
 VideoMode vmode = VideoMode::getDesktopMode();
-char const *TITLE = "Application";
+char const *TITLE = "Bot World";
 unsigned int FRAMERATE_LIMIT = 60u;
 
 Color const backgroundcolor(0xfd, 0xea, 0xa8);
@@ -78,8 +78,8 @@ adapter_type adapter;
 
 // field
 field_type field;
-int const DEFAULT_FIELD_WIDTH = 100;
-int const DEFAULT_FIELD_HEIGHT = 50;
+int const DEFAULT_FIELD_WIDTH = 50;
+int const DEFAULT_FIELD_HEIGHT = 25;
 
 statstring_type
 	agestring("age: 0"),
@@ -87,7 +87,7 @@ statstring_type
 	groundenstring("ground energy: 0.0"),
 	botenstring   ("bots energy:   0.0"),
 	plantenstring ("plants energy: 0.0"),
-	summenstring  ("summ energy:   0.0");
+	summenstring  ("summ energy:   0  ");
 
 
 

@@ -21,9 +21,9 @@ rerun: clean $(EXECUTABLE)
 
 
 
-$(EXECUTABLE): main.o define.o init.o bot_field.o
+$(EXECUTABLE): main.o define.o init.o bot_field.o Stat.o
 	g++ $(LDFLAGS) -o $(EXECUTABLE) \
-	main.o define.o init.o bot_field.o $(LIBS)
+	main.o define.o init.o bot_field.o Stat.o $(LIBS)
 
 main.o: main.cpp
 	g++ $(CFLAGS) -o main.o main.cpp
@@ -36,6 +36,10 @@ init.o: init.cpp
 
 bot_field.o: bot_field.cpp
 	g++ $(CFLAGS) -o bot_field.o bot_field.cpp
+
+Stat.o: Stat.cpp
+	g++ $(CFLAGS) -o Stat.o Stat.cpp
+
 
 
 

@@ -12,7 +12,8 @@ using namespace std;
 
 // objects
 Bot const Bot::DEFAULT = {
-	0.0, 0
+	0.0, 0,
+	1.0, 1.0, 1.0, 1.0, 1.0
 };
 
 Plant const Plant::DEFAULT = {
@@ -23,9 +24,59 @@ Cell const Cell::DEFAULT = {
 	0.0, nullptr, nullptr
 };
 
-std::default_random_engine BotField::dre_( time(0) );
-std::uniform_real_distribution<double> BotField::realdis_(0.0, 1.0);
-std::uniform_int_distribution<int> BotField::dirdis_(0, OFFSET_SIZE-1);
+std::default_random_engine dre( time(0) );
+std::uniform_real_distribution<double> realdis(0.0, 1.0);
+std::uniform_int_distribution<int> dirdis(0, OFFSET_SIZE-1);
+std::uniform_int_distribution<int> mutdis(0, Bot::CHARACTERS_COUNT-1);
+
+
+
+
+
+// bot functions
+Bot *Bot::bud()
+{
+	// burn
+	Bot *child = new Bot(*this);
+	child->age = 0;
+	double const delta = budprice();
+	energy -= delta;
+	child->energy = delta;
+
+
+
+	// mutation
+	float *characts[ CHARACTERS_COUNT ] = {
+		&child->steppricek, &child->agetaxk,
+		&child->maxenergyk,
+		&child->budreqk, &child->budpricek
+	};
+
+	int from, to;
+	do
+	{
+		from = mutdis(dre);
+	}
+	while(
+		*characts[from] - MUTATION_POWER <= 1.0 - MAX_MUTATION 
+	);
+
+	do
+	{
+		to = mutdis(dre);
+	}
+	while(
+		to == from ||
+		*characts[to] + MUTATION_POWER >= 1.0 + MAX_MUTATION 
+	);
+
+	*characts[from] -= MUTATION_POWER;
+	*characts[to] += MUTATION_POWER;
+
+
+
+	return child;
+}
 
 
 
@@ -44,6 +95,19 @@ BotField::~BotField()
 
 
 // core
+BotField &BotField::free()
+{
+	for(auto cell : plants)
+		delete cell->plant;
+	plants.clear();
+	for(auto cell : bots)
+		delete cell->bot;
+	bots.clear();
+	delete[] d;
+	return *this;
+}
+
+
 void BotField::init_botfield(int width, int height)
 {
 	init(width, height);
@@ -54,8 +118,13 @@ void BotField::init_botfield(int width, int height)
 void BotField::reset()
 {
 	clear(Cell::DEFAULT);
-	bots.clear();
+	for(auto cell : plants)
+		delete cell->plant;
 	plants.clear();
+	for(auto cell : bots)
+		delete cell->bot;
+	summen = grounden = planten = boten = 0.0;
+	bots.clear();
 }
 
 
@@ -87,7 +156,7 @@ void BotField::update_ground()
 	for(int y = 0; y < h; ++y)
 	for(int x = 0; x < w; ++x)
 	{
-		delta = at(x, y).energy * SMOOTH;
+		delta = at(x, y).energy * Cell::SMOOTH;
 		at(x, y).energy -= delta;
 
 		delta /= OFFSET_SIZE;
@@ -138,11 +207,13 @@ void BotField::update_bots()
 
 
 		// step
-		delta = STEP_PRICE + bot->age*AGE_TAX;
+		delta = bot->stepprice() + bot->age * bot->agetax();
 		++bot->age;
 		if( !( bot->energy > delta ) )
 		{
 			cell->energy += bot->energy;
+			grounden += bot->energy;
+			boten -= bot->energy;
 			delete cell->bot;
 			cell->bot = nullptr;
 			bots.erase(b++);
@@ -150,22 +221,24 @@ void BotField::update_bots()
 			continue;
 		}
 		bot->energy -= delta;
+		boten -= delta;
 		cell->energy += delta;
+		grounden += delta;
 		
 		
 		// bud
 		if(
-			bot->energy > BUD_REQ &&
+			bot->energy > bot->budreq() &&
 			sqrt(
-				(bot->energy - BUD_REQ) /
-				(BOT_MAXENERGY - BUD_REQ)
-			) > realdis_(dre_)
+				(bot->energy - bot->budreq()) /
+				(bot->maxenergy() - bot->budreq())
+			) > realdis(dre)
 		)
 		{
 			count = 0;
 			do
 			{
-				choice = dirdis_(dre_);
+				choice = dirdis(dre);
 				to = &tapeAt(x+OFFSET[choice][0], y+OFFSET[choice][1]);
 				++count;
 			}
@@ -174,8 +247,7 @@ void BotField::update_bots()
 			if(count == 16) // antifreeze
 				continue;
 			
-			bot->energy -= BUD_PRICE;
-			to->bot = new Bot{ BUD_PRICE, 0 };
+			to->bot = bot->bud();
 			bots.push_front(to); 
 			continue;
 		}
@@ -185,7 +257,7 @@ void BotField::update_bots()
 		count = 0;
 		do
 		{
-			choice = dirdis_(dre_);
+			choice = dirdis(dre);
 			to = &tapeAt( x+OFFSET[choice][0], y+OFFSET[choice][1] );
 			++count;
 		}
@@ -203,16 +275,21 @@ void BotField::update_bots()
 		if(to->plant)
 		{
 			auto &plant = *to->plant;
-			if( !( BOT_MAXENERGY - bot->energy < plant.energy ) )
+			if( !( bot->maxenergy() - bot->energy < plant.energy ) )
 			{
 				bot->energy += plant.energy;
+				boten += plant.energy;
+				planten -= plant.energy;
 				delete to->plant;
 				to->plant = nullptr; // remove from list 'plants' in 'update_plants'
 			}
 			else
 			{
-				plant.energy -= BOT_MAXENERGY - bot->energy;
-				bot->energy = BOT_MAXENERGY;
+				delta = bot->maxenergy() - bot->energy;
+				plant.energy -= delta;
+				planten -= delta;
+				bot->energy += delta;
+				boten += delta;
 			}
 		}
 
@@ -243,11 +320,13 @@ void BotField::update_plants()
 			continue;
 		}
 		delta = min(
-			(PLANT_MAXENERGY - plant->energy) * PLANT_TAKE_TO_SELF,
-			cell->energy * PLANT_TAKE_FROM_EATH
+			(Plant::MAX_ENERGY - plant->energy) * Plant::TAKE_TO_SELF,
+			cell->energy * Plant::TAKE_FROM_EATH
 		);
 		cell->energy -= delta;
+		grounden -= delta;
 		plant->energy += delta;
+		planten += delta;
 	}
 
 
@@ -258,12 +337,14 @@ void BotField::update_plants()
 		if( b->plant || b->bot )
 			continue;
 		if(
-			( b->energy / DEFAULT_GROUND_ENERGY ) *
-			PLANT_BURN_CHANCE > realdis_(dre_)
+			(
+				b->energy /
+				Cell::DEFAULT_GROUND_ENERGY
+			) * Plant::BURN_CHANCE >
+			realdis(dre)
 		)
 		{
-			b->plant = new Plant{ b->energy };
-			b->energy = 0.0;
+			b->plant = new Plant{ 0.0 };
 			plants.push_back(b);
 		}
 	}
@@ -274,12 +355,15 @@ void BotField::update_plants()
 }
 
 
+
 bool BotField::push(int x, int y, Bot *bot)
 {
 	auto *cell = &at(x, y);
 	if(cell->bot)
 		return false;
 	cell->bot = bot;
+	boten += bot->energy;
+	summen += bot->energy;
 	bots.push_back(cell);
 	return true;
 }
@@ -290,37 +374,20 @@ bool BotField::push(int x, int y, Plant *plant)
 	if(cell->plant)
 		return false;
 	cell->plant = plant;
+	planten += plant->energy;
+	summen += plant->energy;
 	plants.push_back(cell);
 	return true;
 }
 
-
-void BotField::get_energy(
-	double &summen, double &grounden,
-	double &planten, double &boten
-) const
+double BotField::fillground(int x, int y)
 {
-	grounden = 0.0;
-	for(auto b = cbegin(), e = cend(); b != e; ++b)
-	{
-		grounden += b->energy;
-	}
-
-	boten = 0.0;
-	for(auto i : bots)
-	{
-		boten += i->bot->energy;
-	}
-
-	planten = 0.0;
-	for(auto i : plants)
-	{
-		planten += i->plant->energy;
-	}
-
-	summen = grounden + boten + planten;
-
-	return;
+	auto &cell = at(x, y);
+	double const delta = Cell::DEFAULT_GROUND_ENERGY - cell.energy;
+	cell.energy += delta;
+	grounden += delta;
+	summen += delta;
+	return delta;
 }
 
 

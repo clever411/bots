@@ -8,6 +8,8 @@
 #include "declare.hpp"
 #include "init.hpp"
 
+#include "Stat.hpp"
+
 
 using namespace clever;
 using namespace sf;
@@ -38,7 +40,8 @@ int main( int argc, char *argv[] )
 		up = false,
 		upfield = false,
 		upage = false,
-		upspeed = true;
+		upspeed = true,
+		writestat = false;
 
 	bool
 		ikeywaspush = false,
@@ -69,6 +72,8 @@ int main( int argc, char *argv[] )
 		&plantenstring, &botenstring
 	};
 
+	Stat stat;
+
 
 
 
@@ -98,17 +103,20 @@ int main( int argc, char *argv[] )
 					up = false;
 					upfield = true;
 					upage = true;
+					stat.write("resetstat.txt");
+					stat.reset();
 					break;
 				case Keyboard::Add: case Keyboard::Up:
-					if( updatespeed < 100.0 )
+					if( updatespeed < 500.0 )
 					{
-						if(updatespeed > 9.75)
+						if( updatespeed > 99.5 )
+							updatespeed += 5.0;
+						else if(updatespeed > 9.75)
 							updatespeed += 1.0;
+						else if(updatespeed > 2.95)
+							updatespeed += 0.5;
 						else
-							if(updatespeed > 2.95)
-								updatespeed += 0.5;
-							else
-								updatespeed += 0.1;
+							updatespeed += 0.1;
 						updateperiod = 1.0 / updatespeed;
 						upspeed = true;
 					}
@@ -116,13 +124,14 @@ int main( int argc, char *argv[] )
 				case Keyboard::Subtract: case Keyboard::Down:
 					if(updatespeed > 0.15)
 					{
-						if(updatespeed > 10.5)
+						if(updatespeed > 102.5)
+							updatespeed -= 5.0;
+						else if(updatespeed > 10.5)
 							updatespeed -= 1.0;
+						else if(updatespeed > 3.25)
+							updatespeed -= 0.5;
 						else
-							if(updatespeed > 3.25)
-								updatespeed -= 0.5;
-							else
-								updatespeed -= 0.1;
+							updatespeed -= 0.1;
 						updateperiod = 1.0 / updatespeed;
 						upspeed = true;
 					}
@@ -165,8 +174,13 @@ int main( int argc, char *argv[] )
 						if(cell.bot)
 						{
 							cout << "it's bot\n"
-								"energy: " << cell.bot->energy << "\n"
-								"age: " << cell.bot->age << "\n"
+								"energy:      " << cell.bot->energy << "\n"
+								"age:         " << cell.bot->age << "\n"
+								"step price:  " << cell.bot->steppricek << "\n"
+								"age tax:     " << cell.bot->agetaxk << "\n"
+								"max energy:  " << cell.bot->maxenergyk << "\n"
+								"bud req:     " << cell.bot->budreqk << "\n"
+								"bud price:   " << cell.bot->budpricek << "\n"
 								"------------------------------" << endl;
 						}
 						else if(cell.plant)
@@ -181,12 +195,13 @@ int main( int argc, char *argv[] )
 				{
 					upfield = true;
 					if(isbkey)
-						field.push(
-							point.first, point.second,
-							new Bot{field.BUD_PRICE, 0}
-						);
+					{
+						Bot *bot = new Bot(Bot::DEFAULT);
+						bot->energy = bot->budprice();
+						field.push( point.first, point.second, bot );
+					}
 					else if(isleft)
-						cell.energy = BotField::DEFAULT_GROUND_ENERGY;
+						field.fillground(point.first, point.second);
 					else
 						field.push(
 							point.first, point.second,
@@ -221,10 +236,17 @@ int main( int argc, char *argv[] )
 					stage -= updateperiod;
 					field.update_field();
 					++age;
+					stat.add(
+						field.summen,
+						field.grounden,
+						field.planten,
+						field.boten
+					);
 				}
 				while( stage >= updateperiod );
 				upfield = true;
 				upage = true;
+				writestat = true;
 			}
 		}
 
@@ -243,22 +265,21 @@ int main( int argc, char *argv[] )
 
 		if( upfield )
 		{
-			field.get_energy(summen, grounden, planten, boten);
 			summenstring =
 				"summ energy:   " +
-				to_string( int( round(summen) ) );
+				to_string( int( round(field.summen) ) );
 
 			groundenstring =
 				"ground energy: " +
-				cutzero( to_string( int( grounden * 10.0 ) / 10.0 ) );
+				cutzero( to_string( int( field.grounden * 10.0 ) / 10.0 ) );
 
 			plantenstring =
 				"plants energy: " +
-				cutzero( to_string( int( planten * 10.0 ) / 10.0 ) );
+				cutzero( to_string( int( field.planten * 10.0 ) / 10.0 ) );
 
 			botenstring =
 				"bots energy:   " +
-				cutzero( to_string( int( boten * 10.0 ) / 10.0 ) );
+				cutzero( to_string( int( field.boten * 10.0 ) / 10.0 ) );
 
 			adapter.update();
 			upfield = false;
@@ -279,6 +300,8 @@ int main( int argc, char *argv[] )
 		window.display();
 	}
 	
+	stat.write("endstat.txt");
+
 	
 	
 	
