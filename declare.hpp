@@ -7,10 +7,10 @@
 
 #include <clever/ChangingObject.hpp>
 #include <clever/Field.hpp>
-#include <clever/SFML/CellPrinter.hpp>
 #include <clever/SFML/FieldAdapter.hpp>
 
 #include "bot_field.hpp"
+#include "CellPrinter.hpp"
 
 
 
@@ -23,7 +23,7 @@
 
 
 // types
-typedef clever::CellPrinter<Cell> printer_type;
+typedef CellPrinter printer_type;
 typedef BotField field_type;
 typedef clever::FieldAdapter<Cell, printer_type> adapter_type;
 typedef clever::ChangingObject<std::string> statstring_type;
@@ -49,10 +49,11 @@ extern unsigned int EN_FONT_SIZE;
 extern sf::Text
 	agelabel,
 	speedlabel,
+	summenlabel,
 	groundenlabel,
-	botenlabel,
 	plantenlabel,
-	summenlabel;
+	botenlabel,
+	bodyenlabel;
 
 extern adapter_type adapter;
 
@@ -66,10 +67,11 @@ extern int const DEFAULT_FIELD_HEIGHT;
 extern statstring_type
 	agestring,
 	speedstring,
+	summenstring,
 	groundenstring,
-	botenstring,
 	plantenstring,
-	summenstring;
+	botenstring,
+	bodyenstring;
 
 
 

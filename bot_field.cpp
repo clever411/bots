@@ -11,17 +11,21 @@ using namespace std;
 
 
 // objects
-Bot const Bot::DEFAULT = {
-	0.0, 0,
-	1.0, 1.0, 1.0, 1.0, 1.0
-};
-
 Plant const Plant::DEFAULT = {
 	0.0
 };
 
+Bot const Bot::DEFAULT = {
+	0.0, 0, 0,
+	1.0, 1.0, 1.0, 1.0, 1.0
+};
+
+Body const Body::DEFAULT = {
+	0.0, 0
+};
+
 Cell const Cell::DEFAULT = {
-	0.0, nullptr, nullptr
+	0.0, nullptr, nullptr, nullptr
 };
 
 std::default_random_engine dre( time(0) );
@@ -39,6 +43,7 @@ Bot *Bot::bud()
 	// burn
 	Bot *child = new Bot(*this);
 	child->age = 0;
+	++child->generation;
 	double const delta = budprice();
 	energy -= delta;
 	child->energy = delta;
@@ -47,7 +52,7 @@ Bot *Bot::bud()
 
 	// mutation
 	float *characts[ CHARACTERS_COUNT ] = {
-		&child->steppricek, &child->agetaxk,
+		&child->steppricek, &child->agesteptaxk,
 		&child->maxenergyk,
 		&child->budreqk, &child->budpricek
 	};
@@ -100,10 +105,17 @@ BotField &BotField::free()
 	for(auto cell : plants)
 		delete cell->plant;
 	plants.clear();
+
 	for(auto cell : bots)
 		delete cell->bot;
 	bots.clear();
+
+	for(auto cell : bodyes)
+		delete cell->body;
+	bodyes.clear();
+
 	delete[] d;
+
 	return *this;
 }
 
@@ -117,19 +129,28 @@ void BotField::init_botfield(int width, int height)
 
 void BotField::reset()
 {
-	clear(Cell::DEFAULT);
 	for(auto cell : plants)
 		delete cell->plant;
 	plants.clear();
+
 	for(auto cell : bots)
 		delete cell->bot;
-	summen = grounden = planten = boten = 0.0;
 	bots.clear();
+
+	for(auto cell : bodyes)
+		delete cell->body;
+	bodyes.clear();
+
+	summen = grounden = planten = boten = 0.0;
+	clear(Cell::DEFAULT);
+
+	return;
 }
 
 
 void BotField::update_field()
 {
+	update_bodyes();
 	update_ground();
 	update_bots(); // first is bots becouse they eating plants
 	update_plants();
@@ -180,6 +201,47 @@ void BotField::update_ground()
 	return;
 }
 
+void BotField::update_bodyes()
+{
+	Cell *cell;
+	Body *body;
+
+	double delta;
+
+	for(auto b = bodyes.begin(), e = bodyes.end(); b != e; ++b)
+	{
+		cell = *b;
+		body = cell->body;
+		delta = Body::ROT_SPEED * pow(
+			Body::ROT_ACCELERATION, sqrt(double(body->age))
+		);
+
+		if( !(body->energy > delta) )
+		{
+			cell->energy += body->energy;
+			grounden += body->energy;
+			bodyen -= body->energy;
+
+			delete body;
+			cell->body = nullptr;
+			bodyes.erase(b++);
+			--b;
+			continue;
+		}
+
+		body->energy -= delta;
+		bodyen -= delta;
+		cell->energy += delta;
+		grounden += delta;
+
+		++body->age;
+	}
+
+
+
+	return;
+}
+
 void BotField::update_bots()
 {
 	// objects
@@ -207,19 +269,25 @@ void BotField::update_bots()
 
 
 		// step
-		delta = bot->stepprice() + bot->age * bot->agetax();
+		delta = bot->stepprice() + bot->age * bot->agesteptax();
 		++bot->age;
-		if( !( bot->energy > delta ) )
+
+			// die
+		if( !( bot->energy - delta > bot->dieedge() ) )
 		{
-			cell->energy += bot->energy;
-			grounden += bot->energy;
+			cell->body = new Body { bot->energy, 0 };
+			bodyen += bot->energy;
 			boten -= bot->energy;
+			bodyes.push_back(cell);
+
 			delete cell->bot;
 			cell->bot = nullptr;
 			bots.erase(b++);
 			--b;
 			continue;
 		}
+
+			// all right
 		bot->energy -= delta;
 		boten -= delta;
 		cell->energy += delta;
@@ -242,7 +310,7 @@ void BotField::update_bots()
 				to = &tapeAt(x+OFFSET[choice][0], y+OFFSET[choice][1]);
 				++count;
 			}
-			while( (to->plant || to->bot) && count < 16 );
+			while( (to->plant || to->bot || to->body) && count < 16 );
 
 			if(count == 16) // antifreeze
 				continue;
@@ -261,7 +329,7 @@ void BotField::update_bots()
 			to = &tapeAt( x+OFFSET[choice][0], y+OFFSET[choice][1] );
 			++count;
 		}
-		while( to->bot && count < 16 );
+		while( ( to->bot || to->body ) && count < 16 );
 
 		if(count == 16) // antifreeze
 			continue;
@@ -334,7 +402,7 @@ void BotField::update_plants()
 	// sow plants
 	for(auto b = begin(), e = end(); b != e; ++b)
 	{
-		if( b->plant || b->bot )
+		if( b->plant || b->bot || b->body )
 			continue;
 		if(
 			(
@@ -359,7 +427,7 @@ void BotField::update_plants()
 bool BotField::push(int x, int y, Bot *bot)
 {
 	auto *cell = &at(x, y);
-	if(cell->bot)
+	if(cell->plant || cell->bot || cell->body)
 		return false;
 	cell->bot = bot;
 	boten += bot->energy;
@@ -371,7 +439,7 @@ bool BotField::push(int x, int y, Bot *bot)
 bool BotField::push(int x, int y, Plant *plant)
 {
 	auto *cell = &at(x, y);
-	if(cell->plant)
+	if(cell->plant || cell->bot || cell->body)
 		return false;
 	cell->plant = plant;
 	planten += plant->energy;
@@ -388,6 +456,22 @@ double BotField::fillground(int x, int y)
 	grounden += delta;
 	summen += delta;
 	return delta;
+}
+
+
+void BotField::random_fill(int cellcount)
+{
+	std::uniform_int_distribution<int>
+		widthdis(0, w-1), heightdis(0, h-1);
+	int x, y;
+	for(int i = 0; i < cellcount; ++i)
+	{
+		x = widthdis(dre);
+		y = heightdis(dre);
+		fillground(x, y);
+	}
+
+	return;
 }
 
 

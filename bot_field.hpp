@@ -25,24 +25,39 @@ static constexpr int const OFFSET[OFFSET_SIZE][2] {
 
 
 // types
+struct Plant
+{
+	static constexpr double const
+		TAKE_FROM_EATH = 0.1,
+		TAKE_TO_SELF = 0.05,
+		MAX_ENERGY = 100.0,
+		BURN_CHANCE = 0.01;
+
+	double energy;
+
+	static Plant const DEFAULT;
+};
+
 struct Bot
 {
 	static constexpr int const
 		CHARACTERS_COUNT = 5;
 	static constexpr double const
-		MAX_ENERGY = 1500.0,
-		STEP_PRICE = 0.2,
-		AGE_TAX = 0.005,
-		BUD_REQ = 1000.0,
-		BUD_PRICE = 500.0,
-		MAX_MUTATION = 0.2,
-		MUTATION_POWER = 0.005;
+		MAX_ENERGY = 1000.0,
+		STEP_PRICE = 0.1,
+		AGE_STEP_TAX = 0.1,
+		AGE_DIE_TAX = 4.0,
+		BUD_REQ = 300.0,
+		BUD_PRICE = 50.0,
+		MAX_MUTATION = 0.5,
+		MUTATION_POWER = 0.01;
 
 	double energy;
 	int age;
+	int generation;
 
 	float
-		steppricek, agetaxk,
+		steppricek, agesteptaxk,
 		maxenergyk,
 		budreqk, budpricek;
 
@@ -50,9 +65,9 @@ struct Bot
 	{
 		return STEP_PRICE * (2.0 - steppricek);
 	}
-	inline double agetax() const
+	inline double agesteptax() const
 	{
-		return AGE_TAX * (2.0 - agetaxk);
+		return AGE_STEP_TAX * (2.0 - agesteptaxk);
 	}
 	inline double maxenergy() const
 	{
@@ -66,6 +81,10 @@ struct Bot
 	{
 		return BUD_PRICE * (2.0 - budpricek);
 	}
+	inline double dieedge() const
+	{
+		return AGE_DIE_TAX * age;
+	}
 
 	Bot *bud();
 
@@ -74,28 +93,28 @@ struct Bot
 	static Bot const DEFAULT;
 };
 
-struct Plant
+struct Body
 {
 	static constexpr double const
-		TAKE_FROM_EATH = 0.25,
-		TAKE_TO_SELF = 0.2,
-		MAX_ENERGY = 400.0,
-		BURN_CHANCE = 0.001;
+		ROT_SPEED = 0.5,
+		ROT_ACCELERATION = 1.04;
 
 	double energy;
+	int age;
 
-	static Plant const DEFAULT;
+	static Body const DEFAULT;
 };
 
 struct Cell
 {
 	static constexpr double const
-		DEFAULT_GROUND_ENERGY = 75.0,
+		DEFAULT_GROUND_ENERGY = 50.0,
 		SMOOTH = 0.33;
 
 	double energy;
-	Bot *bot;
 	Plant *plant;
+	Bot *bot;
+	Body *body;
 
 	static Cell const DEFAULT;
 };
@@ -108,14 +127,16 @@ struct Cell
 struct BotField: public clever::Field<Cell>
 {
 	// members
-	std::list<Cell*> bots = {};
 	std::list<Cell*> plants = {};
+	std::list<Cell*> bots = {};
+	std::list<Cell*> bodyes = {};
 
 	float
 		summen = 0.0,
 		grounden = 0.0,
 		planten = 0.0,
-		boten = 0.0;
+		boten = 0.0,
+		bodyen = 0.0;
 
 
 
@@ -132,12 +153,15 @@ struct BotField: public clever::Field<Cell>
 
 	void update_field();
 	void update_ground();
+	void update_bodyes();
 	void update_bots();
 	void update_plants();
 
 	bool push(int x, int y, Bot *bot);
 	bool push(int x, int y, Plant *plant);
 	double fillground(int x, int y);
+
+	void random_fill(int cellcount);
 
 
 

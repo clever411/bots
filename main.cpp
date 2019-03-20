@@ -60,16 +60,16 @@ int main( int argc, char *argv[] )
 		summen, grounden,
 		planten, boten;
 
-	int LABELS_SIZE = 6;
+	static constexpr int const LABELS_SIZE = 7;
 	Text *labels[] = {
 		&agelabel, &speedlabel,
-		&summenlabel, &groundenlabel,
-		&plantenlabel, &botenlabel
+		&summenlabel, &groundenlabel, &plantenlabel,
+		&botenlabel, &bodyenlabel
 	};
 	statstring_type *strings[] = {
 		&agestring, &speedstring,
-		&summenstring, &groundenstring,
-		&plantenstring, &botenstring
+		&summenstring, &groundenstring, &plantenstring,
+		&botenstring, &bodyenstring
 	};
 
 	Stat stat;
@@ -85,7 +85,7 @@ int main( int argc, char *argv[] )
 	{
 		// handle events
 			// usual key
-		if(window.pollEvent(event))
+		while(window.pollEvent(event))
 		{
 
 			switch(event.type)
@@ -106,11 +106,15 @@ int main( int argc, char *argv[] )
 					stat.write("resetstat.txt");
 					stat.reset();
 					break;
+				case Keyboard::F:
+					field.random_fill(100);
+					upfield = true;
+					break;
 				case Keyboard::Add: case Keyboard::Up:
-					if( updatespeed < 500.0 )
+					if( updatespeed < 1000.0 )
 					{
 						if( updatespeed > 99.5 )
-							updatespeed += 5.0;
+							updatespeed += 10.0;
 						else if(updatespeed > 9.75)
 							updatespeed += 1.0;
 						else if(updatespeed > 2.95)
@@ -124,8 +128,8 @@ int main( int argc, char *argv[] )
 				case Keyboard::Subtract: case Keyboard::Down:
 					if(updatespeed > 0.15)
 					{
-						if(updatespeed > 102.5)
-							updatespeed -= 5.0;
+						if(updatespeed > 105.0)
+							updatespeed -= 10.0;
 						else if(updatespeed > 10.5)
 							updatespeed -= 1.0;
 						else if(updatespeed > 3.25)
@@ -171,22 +175,30 @@ int main( int argc, char *argv[] )
 					if(!ikeywaspush)
 					{
 						ikeywaspush = true;
-						if(cell.bot)
-						{
-							cout << "it's bot\n"
-								"energy:      " << cell.bot->energy << "\n"
-								"age:         " << cell.bot->age << "\n"
-								"step price:  " << cell.bot->steppricek << "\n"
-								"age tax:     " << cell.bot->agetaxk << "\n"
-								"max energy:  " << cell.bot->maxenergyk << "\n"
-								"bud req:     " << cell.bot->budreqk << "\n"
-								"bud price:   " << cell.bot->budpricek << "\n"
-								"------------------------------" << endl;
-						}
-						else if(cell.plant)
+						if(cell.plant)
 						{
 							cout << "it's plant\n"
 								"energy: " << cell.plant->energy << "\n"
+								"------------------------------" << endl;
+						}
+						else if(cell.bot)
+						{
+							cout << "it's bot\n"
+								"energy:     " << cell.bot->energy      << "\n"
+								"age:        " << cell.bot->age         << "\n"
+								"generation: " << cell.bot->generation  << "\n\n"
+								"step price: " << cell.bot->steppricek  << "\n"
+								"age tax:    " << cell.bot->agesteptaxk << "\n"
+								"max energy: " << cell.bot->maxenergyk  << "\n"
+								"bud req:    " << cell.bot->budreqk     << "\n"
+								"bud price:  " << cell.bot->budpricek   << "\n"
+								"------------------------------\n\n" << endl;
+						}
+						else if(cell.body)
+						{
+							cout << "it's body\n"
+								"energy: " << cell.body->energy << "\n"
+								"age:    " << cell.body->age << "\n"
 								"------------------------------" << endl;
 						}
 					}
@@ -240,7 +252,8 @@ int main( int argc, char *argv[] )
 						field.summen,
 						field.grounden,
 						field.planten,
-						field.boten
+						field.boten,
+						field.bodyen
 					);
 				}
 				while( stage >= updateperiod );
@@ -280,6 +293,10 @@ int main( int argc, char *argv[] )
 			botenstring =
 				"bots energy:   " +
 				cutzero( to_string( int( field.boten * 10.0 ) / 10.0 ) );
+
+			bodyenstring =
+				"bodyes energy: " +
+				cutzero( to_string( int( field.bodyen * 10.0 ) / 10.0 ) );
 
 			adapter.update();
 			upfield = false;

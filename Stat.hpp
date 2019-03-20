@@ -15,7 +15,8 @@ public:
 		float summen,
 		float grounden,
 		float planten,
-		float boten
+		float boten,
+		float bodyen
 	);
 	void write(char const *filename) const;
 	void reset();
@@ -29,7 +30,8 @@ private:
 			summ,
 			ground,
 			plant,
-			bot;
+			bot,
+			body;
 	};
 
 	std::vector<Unit> code_;

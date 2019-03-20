@@ -21,30 +21,36 @@ rerun: clean $(EXECUTABLE)
 
 
 
-$(EXECUTABLE): main.o define.o init.o bot_field.o Stat.o
+$(EXECUTABLE): main.o define.o init.o bot_field.o CellPrinter.o Stat.o
 	g++ $(LDFLAGS) -o $(EXECUTABLE) \
-	main.o define.o init.o bot_field.o Stat.o $(LIBS)
+	main.o define.o init.o bot_field.o CellPrinter.o Stat.o $(LIBS)
 
-main.o: main.cpp
+main.o: main.cpp declare.hpp init.hpp Stat.hpp
 	g++ $(CFLAGS) -o main.o main.cpp
 
-define.o: define.cpp
+
+define.o: define.cpp declare.hpp
 	g++ $(CFLAGS) -o define.o define.cpp
 
-init.o: init.cpp
+declare.hpp: bot_field.hpp CellPrinter.hpp
+
+
+init.o: init.cpp init.hpp declare.hpp
 	g++ $(CFLAGS) -o init.o init.cpp
 
-bot_field.o: bot_field.cpp
+
+bot_field.o: bot_field.cpp bot_field.hpp
 	g++ $(CFLAGS) -o bot_field.o bot_field.cpp
 
-Stat.o: Stat.cpp
+
+CellPrinter.o: CellPrinter.cpp CellPrinter.hpp
+	g++ $(CFLAGS) -o CellPrinter.o CellPrinter.cpp
+
+CellPrinter.hpp: bot_field.hpp
+
+
+Stat.o: Stat.cpp Stat.hpp
 	g++ $(CFLAGS) -o Stat.o Stat.cpp
-
-
-
-
-
-
 
 
 

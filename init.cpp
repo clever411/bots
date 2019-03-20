@@ -1,6 +1,8 @@
 #include <cstring>
 #include <memory>
 
+#include "init.hpp"
+
 #include "declare.hpp"
 
 
@@ -42,6 +44,8 @@ void init_adapter()
 	).
 	update().
 	setGridColor(Color(gridcolor)).
+	setBordertocell(0.0).
+	setDrawGridEnable(false).
 	setDrawBoundsEnable(false).
 	update();
 
@@ -103,12 +107,12 @@ void init_enslabel()
 {
 	// objects
 	Text *labels[] = {
-	 	&summenlabel, &groundenlabel,
-		&plantenlabel, &botenlabel
+	 	&summenlabel, &groundenlabel, &plantenlabel,
+		&botenlabel, &bodyenlabel
 	};
 	statstring_type *strings[] = {
-		&summenstring, &groundenstring,
-		&plantenstring, &botenstring
+		&summenstring, &groundenstring, &plantenstring,
+		&botenstring, &bodyenstring
 	};
 	int i = 0;
 	auto winsize = window.getSize();
@@ -128,8 +132,8 @@ void init_enslabel()
 			bounds.height
 		);
 		l->setPosition(
-			winsize.x / 8.0 * ( 5 + i/2*2 ),
-			adsize.y + r * (1+i%2) / 3
+			winsize.x / 8.0 * ( 5 + i/3*2 ),
+			adsize.y + r * (1+i%3) / 4
 		);
 
 		++i;
