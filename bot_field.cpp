@@ -102,18 +102,17 @@ BotField::~BotField()
 // core
 BotField &BotField::free()
 {
-	for(auto cell : plants)
-		delete cell->plant;
-	plants.clear();
+	for(auto b = begin(), e = end(); b != e; ++b)
+	{
+		if(b->plant)
+			delete b->plant;
+		else if(b->bot)
+			delete b->bot;
+		else if(b->body)
+			delete b->body;
+	}
 
-	for(auto cell : bots)
-		delete cell->bot;
 	bots.clear();
-
-	for(auto cell : bodyes)
-		delete cell->body;
-	bodyes.clear();
-
 	delete[] d;
 
 	return *this;
@@ -129,18 +128,17 @@ void BotField::init_botfield(int width, int height)
 
 void BotField::reset()
 {
-	for(auto cell : plants)
-		delete cell->plant;
-	plants.clear();
+	for(auto b = begin(), e = end(); b != e; ++b)
+	{
+		if(b->plant)
+			delete b->plant;
+		else if(b->bot)
+			delete b->bot;
+		else if(b->body)
+			delete b->body;
+	}
 
-	for(auto cell : bots)
-		delete cell->bot;
 	bots.clear();
-
-	for(auto cell : bodyes)
-		delete cell->body;
-	bodyes.clear();
-
 	summen = grounden = planten = boten = 0.0;
 	clear(Cell::DEFAULT);
 
@@ -150,10 +148,9 @@ void BotField::reset()
 
 void BotField::update_field()
 {
-	update_bodyes();
 	update_ground();
-	update_bots(); // first is bots becouse they eating plants
-	update_plants();
+	update_standing();
+	update_bots();
 
 	return;
 }
@@ -201,40 +198,63 @@ void BotField::update_ground()
 	return;
 }
 
-void BotField::update_bodyes()
+void BotField::update_standing()
 {
-	Cell *cell;
+	double delta;
+	Plant *plant;
 	Body *body;
 
-	double delta;
-
-	for(auto b = bodyes.begin(), e = bodyes.end(); b != e; ++b)
+	for(auto cell = begin(), e = end(); cell != e; ++cell)
 	{
-		cell = *b;
-		body = cell->body;
-		delta = Body::ROT_SPEED * pow(
-			Body::ROT_ACCELERATION, sqrt(double(body->age))
-		);
-
-		if( !(body->energy > delta) )
+		if(cell->plant)
 		{
-			cell->energy += body->energy;
-			grounden += body->energy;
-			bodyen -= body->energy;
-
-			delete body;
-			cell->body = nullptr;
-			bodyes.erase(b++);
-			--b;
-			continue;
+			plant = cell->plant;
+			delta = min(
+				(Plant::MAX_ENERGY - plant->energy) * Plant::TAKE_TO_SELF,
+				cell->energy * Plant::TAKE_FROM_EATH
+			);
+			cell->energy -= delta;
+			grounden -= delta;
+			plant->energy += delta;
+			planten += delta;
 		}
+		else if(cell->body)
+		{
+			body = cell->body;
+			delta = Body::ROT_SPEED * pow(
+				Body::ROT_ACCELERATION, sqrt(double(body->age))
+			);
 
-		body->energy -= delta;
-		bodyen -= delta;
-		cell->energy += delta;
-		grounden += delta;
+			if( !(body->energy > delta) )
+			{
+				cell->energy += body->energy;
+				grounden += body->energy;
+				bodyen -= body->energy;
 
-		++body->age;
+				delete body;
+				cell->body = nullptr;
+			}
+			else
+			{
+				body->energy -= delta;
+				bodyen -= delta;
+				cell->energy += delta;
+				grounden += delta;
+
+				++body->age;
+			}
+		}
+		else if(
+			!cell->bot &&
+			(
+				cell->energy /
+				Cell::DEFAULT_GROUND_ENERGY
+			) * Plant::BURN_CHANCE >
+			realdis(dre)
+		)
+		{
+			cell->plant = new Plant{ 0.0 };
+		}
 	}
 
 
@@ -278,7 +298,6 @@ void BotField::update_bots()
 			cell->body = new Body { bot->energy, 0 };
 			bodyen += bot->energy;
 			boten -= bot->energy;
-			bodyes.push_back(cell);
 
 			delete cell->bot;
 			cell->bot = nullptr;
@@ -343,13 +362,13 @@ void BotField::update_bots()
 		if(to->plant)
 		{
 			auto &plant = *to->plant;
-			if( !( bot->maxenergy() - bot->energy < plant.energy ) )
+			if( !( plant.energy > bot->maxenergy() - bot->energy ) )
 			{
 				bot->energy += plant.energy;
 				boten += plant.energy;
 				planten -= plant.energy;
 				delete to->plant;
-				to->plant = nullptr; // remove from list 'plants' in 'update_plants'
+				to->plant = nullptr;
 			}
 			else
 			{
@@ -369,59 +388,6 @@ void BotField::update_bots()
 
 	return;
 }
-
-void BotField::update_plants()
-{
-	// update plants
-	double delta;
-	Cell *cell;
-	Plant *plant;
-
-	for(auto b = plants.begin(), e = plants.end(); b != e; ++b)
-	{
-		cell = *b;
-		plant = cell->plant;
-		if(!plant)
-		{
-			plants.erase(b++);
-			--b;
-			continue;
-		}
-		delta = min(
-			(Plant::MAX_ENERGY - plant->energy) * Plant::TAKE_TO_SELF,
-			cell->energy * Plant::TAKE_FROM_EATH
-		);
-		cell->energy -= delta;
-		grounden -= delta;
-		plant->energy += delta;
-		planten += delta;
-	}
-
-
-
-	// sow plants
-	for(auto b = begin(), e = end(); b != e; ++b)
-	{
-		if( b->plant || b->bot || b->body )
-			continue;
-		if(
-			(
-				b->energy /
-				Cell::DEFAULT_GROUND_ENERGY
-			) * Plant::BURN_CHANCE >
-			realdis(dre)
-		)
-		{
-			b->plant = new Plant{ 0.0 };
-			plants.push_back(b);
-		}
-	}
-
-
-
-	return;
-}
-
 
 
 bool BotField::push(int x, int y, Bot *bot)
@@ -444,7 +410,6 @@ bool BotField::push(int x, int y, Plant *plant)
 	cell->plant = plant;
 	planten += plant->energy;
 	summen += plant->energy;
-	plants.push_back(cell);
 	return true;
 }
 

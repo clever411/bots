@@ -43,14 +43,14 @@ struct Bot
 	static constexpr int const
 		CHARACTERS_COUNT = 5;
 	static constexpr double const
-		MAX_ENERGY = 1000.0,
-		STEP_PRICE = 0.1,
-		AGE_STEP_TAX = 0.1,
-		AGE_DIE_TAX = 4.0,
+		MAX_ENERGY = 500.0,
+		STEP_PRICE = 0.0,
+		AGE_STEP_TAX = 0.001,
+		AGE_DIE_TAX = 0.5,
 		BUD_REQ = 300.0,
-		BUD_PRICE = 50.0,
-		MAX_MUTATION = 0.5,
-		MUTATION_POWER = 0.01;
+		BUD_PRICE = 100.0,
+		MAX_MUTATION = 0.25,
+		MUTATION_POWER = 0.02;
 
 	double energy;
 	int age;
@@ -127,11 +127,9 @@ struct Cell
 struct BotField: public clever::Field<Cell>
 {
 	// members
-	std::list<Cell*> plants = {};
 	std::list<Cell*> bots = {};
-	std::list<Cell*> bodyes = {};
 
-	float
+	double
 		summen = 0.0,
 		grounden = 0.0,
 		planten = 0.0,
@@ -153,9 +151,8 @@ struct BotField: public clever::Field<Cell>
 
 	void update_field();
 	void update_ground();
-	void update_bodyes();
+	void update_standing();
 	void update_bots();
-	void update_plants();
 
 	bool push(int x, int y, Bot *bot);
 	bool push(int x, int y, Plant *plant);

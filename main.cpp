@@ -199,7 +199,13 @@ int main( int argc, char *argv[] )
 							cout << "it's body\n"
 								"energy: " << cell.body->energy << "\n"
 								"age:    " << cell.body->age << "\n"
-								"------------------------------" << endl;
+								"------------------------------\n\n" << endl;
+						}
+						else
+						{
+							cout << "it's empty\n"
+								"energy: " << cell.energy << "\n"
+								"------------------------------\n\n" << endl;
 						}
 					}
 				}
