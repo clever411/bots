@@ -30,7 +30,7 @@ Cell const Cell::DEFAULT = {
 
 std::default_random_engine dre( time(0) );
 std::uniform_real_distribution<double> realdis(0.0, 1.0);
-std::uniform_int_distribution<int> dirdis(0, OFFSET_SIZE-1);
+std::uniform_int_distribution<int> dirdis(0, 7);
 std::uniform_int_distribution<int> mutdis(0, Bot::CHARACTERS_COUNT-1);
 
 
@@ -177,14 +177,9 @@ void BotField::update_ground()
 		delta = at(x, y).energy * Cell::SMOOTH;
 		at(x, y).energy -= delta;
 
-		delta /= OFFSET_SIZE;
-		for(int i = 0; i < OFFSET_SIZE; ++i)
-		{
-			smoothf_.tapeAt(
-				x + OFFSET[i][0],
-				y + OFFSET[i][1]
-			) += delta;
-		}
+		delta /= BotField::OFFSET_COUNT;
+		for(int i = 0; i < OFFSET_COUNT; ++i)
+			smoothf_.nearTape(x, y, i) += delta;
 	}
 
 	for(int y = 0; y < h; ++y)
@@ -326,7 +321,7 @@ void BotField::update_bots()
 			do
 			{
 				choice = dirdis(dre);
-				to = &tapeAt(x+OFFSET[choice][0], y+OFFSET[choice][1]);
+				to = &nearTape(x, y, choice);
 				++count;
 			}
 			while( (to->plant || to->bot || to->body) && count < 16 );
@@ -345,7 +340,7 @@ void BotField::update_bots()
 		do
 		{
 			choice = dirdis(dre);
-			to = &tapeAt( x+OFFSET[choice][0], y+OFFSET[choice][1] );
+			to = &nearTape(x, y, choice);
 			++count;
 		}
 		while( ( to->bot || to->body ) && count < 16 );

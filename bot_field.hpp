@@ -10,20 +10,6 @@
 
 
 
-// constants
-static constexpr int const OFFSET_SIZE = 8;
-static constexpr int const OFFSET[OFFSET_SIZE][2] {
-	{ -1, -1 }, { 0, -1 }, { 1, -1 },
-	{ -1, 0 }, { 1, 0 },
-	{ -1, 1 }, { 0, 1 }, { 1, 1 }
-};
-
-
-
-
-
-
-
 // types
 struct Plant
 {

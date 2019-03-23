@@ -1,0 +1,95 @@
+#ifndef CLEVER_THREAD_TRANSFER_H
+#define CLEVER_THREAD_TRANSFER_H
+
+#include <chrono>
+#include <condition_variable>
+#include <mutex>
+#include <thread>
+#include <queue>
+
+namespace clever {
+
+	template<typename PackageType> class ThreadTransfer {
+	public:
+		using value_type = PackageType;
+
+		ThreadTransfer() {}
+		~ThreadTransfer() {}
+
+		void send(PackageType const &package) {
+			{
+				std::lock_guard<std::mutex> lock(_mutex);
+				_storage.push(package);
+			}
+			_condvar.notify_one();
+			return;
+		}
+		ThreadTransfer& operator<<(PackageType const &package) {
+			send(package);
+			return *this;
+		}
+
+		void wait(PackageType &package) {
+			std::unique_lock<std::mutex> lock(_mutex);
+			auto storage = &_storage;
+			_condvar.wait(lock, [storage]()->bool { return !storage->empty(); });
+			package = std::move(_storage.front());
+			_storage.pop();
+			return;
+		}
+		ThreadTransfer& operator>>(PackageType &package) {
+			wait(package);
+			return *this;
+		}
+
+		template<typename Duration>
+		bool waitFor(PackageType &package, Duration const &duration) {
+			std::unique_lock<std::mutex> lock(_mutex);
+			auto storage = &_storage;
+			if(_condvar.wait_for(lock, duration, [storage]()->bool { return !storage->empty(); })) {
+				package = std::move(_storage.front());
+				_storage.pop();
+				return true;
+			}
+			return false;
+		}
+		template<class TimePoint>
+		bool waitUntil(PackageType &package, TimePoint const &timepoint) {
+			std::unique_lock<std::mutex> lock(_mutex);
+			auto storage = &_storage;
+			if(_condvar.wait_until(lock, timepoint, [storage]()->bool { return !storage->empty(); })) {
+				package = std::move(_storage.front());
+				_storage.pop();
+				return true;
+			}
+			return false;
+		}
+
+		bool tryget(PackageType &package) {
+			std::unique_lock<std::mutex> lock(_mutex, std::try_to_lock);
+			if(lock.owns_lock() && !_storage.empty()) {
+				package = std::move(_storage.front());
+				_storage.pop();
+				return true;
+			}
+			return false;
+		}
+
+		int getPackageCount() const {
+			std::lock_guard<std::mutex> lock(_mutex);
+			return _storage.size();
+		}
+
+	private:
+		ThreadTransfer(ThreadTransfer const &prototype);
+		ThreadTransfer& operator=(ThreadTransfer const &prototype);
+
+		std::queue<PackageType> _storage;
+		mutable std::mutex _mutex;
+		std::condition_variable _condvar;
+	};
+
+
+}
+
+#endif // CLEVER_THREAD_TRANSFER_H

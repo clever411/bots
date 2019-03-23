@@ -31,6 +31,7 @@ Field<ValueType>::free()
 
 
 // check vlaid
+	// simple
 template<typename ValueType>
 inline bool Field<ValueType>::isValid(int x, int y) const
 {
@@ -53,6 +54,42 @@ inline bool Field<ValueType>::isValid(
 ) const
 {
 	return p.first >= 0 && p.first < w && p.second >= 0 && p.second < h;
+}
+
+
+
+	// for near
+template<typename ValueType>
+inline bool Field<ValueType>::isValid(
+	int x, int y, int dir
+) const
+{
+	return isValid(
+		x + OFFSET[dir][0],
+		y + OFFSET[dir][1]
+	);
+}
+
+template<typename ValueType> template<class Point>
+inline bool Field<ValueType>::isValid(
+	Point const &p, int dir
+) const
+{
+	return isValid(
+		p.x + OFFSET[dir][0],
+		p.y + OFFSET[dir][1]
+	);
+}
+
+template<typename ValueType>
+inline bool Field<ValueType>::isValid(
+	std::pair<int, int> const &p, int dir
+) const
+{
+	return isValid(
+		p.first + OFFSET[dir][0],
+		p.second + OFFSET[dir][1]
+	);
 }
 
 
@@ -97,34 +134,19 @@ inline void Field<ValueType>::correct(std::pair<int, int> &p) const
 }
 
 
-template<typename ValueType>
-void inline Field<ValueType>::get(
-	typename Field<ValueType>::value_type const *el, int &x, int &y
-) const
-{
-	int const dis = el-d;
-	x = dis%w; y = dis/w;
-	return;
-}
 
-template<typename ValueType> template<class Point>
-void inline Field<ValueType>::get(
-	typename Field<ValueType>::value_type const *el, Point &p
-) const
-{
-	int const dis = el-d;
-	p.x = dis%w; p.y = dis/w;
-	return;
-}
 
+
+// get
 template<typename ValueType>
 inline void Field<ValueType>::get(
-	typename Field<ValueType>::value_type const *el,
-	std::pair<int, int> &p
+	typename Field<ValueType>::value_type const *p,
+	int &x, int &y
 ) const
 {
-	int const dis = el-d;
-	p.first = dis%w; p.second = dis/w;
+	int const i = p-d;
+	y = i/w;
+	x = i%w;
 	return;
 }
 
@@ -265,6 +287,147 @@ inline typename Field<ValueType>::value_type *
 Field<ValueType>::operator[](int n) 
 {
 	return d + n*w;
+}
+
+
+
+	// near at simple
+template<typename ValueType>
+inline typename Field<ValueType>::value_type
+&Field<ValueType>::near(
+	int x, int y, int dir
+)
+{
+	return at( x + OFFSET[dir][0], y + OFFSET[dir][1] );
+}
+
+template<typename ValueType>
+inline typename Field<ValueType>::value_type const
+&Field<ValueType>::near(
+	int x, int y, int dir
+) const
+{
+	return at( x + OFFSET[dir][0], y + OFFSET[dir][1] );
+}
+
+	// near at for point
+template<typename ValueType> template<class Point>
+inline typename Field<ValueType>::value_type
+&Field<ValueType>::near(
+	Point const &p, int dir
+)
+{
+	return at( p.x + OFFSET[dir][0], p.y + OFFSET[dir][1] );
+}
+
+template<typename ValueType> template<class Point>
+inline typename Field<ValueType>::value_type const
+&Field<ValueType>::near(
+	Point const &p, int dir
+) const
+{
+	return at( p.x + OFFSET[dir][0], p.y + OFFSET[dir][1] );
+}
+
+	// near at for std::pair
+template<typename ValueType>
+inline typename Field<ValueType>::value_type
+&Field<ValueType>::near(
+	std::pair<int, int> const &p, int dir
+)
+{
+	return at(
+		p.first + OFFSET[dir][0],
+		p.second + OFFSET[dir][1] 
+	);
+}
+
+template<typename ValueType>
+inline typename Field<ValueType>::value_type const
+&Field<ValueType>::near(
+	std::pair<int, int> const &p, int dir
+) const
+{
+	return at(
+		p.first + OFFSET[dir][0],
+		p.second + OFFSET[dir][1] 
+	);
+}
+
+	
+	// near tape at simple
+template<typename ValueType>
+inline typename Field<ValueType>::value_type
+&Field<ValueType>::nearTape(
+	int x, int y, int dir
+)
+{
+	return tapeAt(
+		x + OFFSET[dir][0],
+		y + OFFSET[dir][1]
+	);
+}
+
+template<typename ValueType>
+inline typename Field<ValueType>::value_type const
+&Field<ValueType>::nearTape(
+	int x, int y, int dir
+) const
+{
+	return tapeAt(
+		x + OFFSET[dir][0],
+		y + OFFSET[dir][1]
+	);
+}
+
+	// near at for point
+template<typename ValueType> template<class Point>
+inline typename Field<ValueType>::value_type
+&Field<ValueType>::nearTape(
+	Point const &p, int dir
+)
+{
+	return tapeAt(
+		p.x + OFFSET[dir][0],
+		p.y + OFFSET[dir][1]
+	);
+}
+
+template<typename ValueType> template<class Point>
+inline typename Field<ValueType>::value_type const
+&Field<ValueType>::nearTape(
+	Point const &p, int dir
+) const
+{
+	return tapeAt(
+		p.x + OFFSET[dir][0],
+		p.y + OFFSET[dir][1]
+	);
+}
+
+	// near at for std::pair
+template<typename ValueType>
+inline typename Field<ValueType>::value_type
+&Field<ValueType>::nearTape(
+	std::pair<int, int> const &p, int dir
+)
+{
+	return tapeAt(
+		p.first + OFFSET[dir][0],
+		p.second + OFFSET[dir][1]
+	);
+}
+
+template<typename ValueType>
+inline typename Field<ValueType>::value_type const
+&Field<ValueType>::nearTape(
+	std::pair<int, int> const &p, int dir
+) const
+{
+	return tapeAt(
+		p.first + OFFSET[dir][0],
+		p.second + OFFSET[dir][1]
+	);
 }
 
 

@@ -20,6 +20,21 @@ struct Field
 	// types
 	typedef ValueType value_type;
 	
+	
+	
+	
+	
+	// static const members
+	static constexpr int const OFFSET_COUNT = 8;
+	static constexpr int const OFFSET[OFFSET_COUNT][2] = {
+		{ -1, -1 }, { 0, -1 }, { 1, -1 }, //  Directions:
+		                       { 1, 0  }, //  0  1  2
+		                       { 1, 1  }, //  7  *  3
+		            { 0, 1  },            //  6  5  4
+		{ -1, 1  },                       // 
+		{ -1, 0  },                       // 
+	};
+	
 
 
 
@@ -42,6 +57,7 @@ struct Field
 
 
 	// check vlaid
+		// simple
 	inline bool isValid(int x, int y) const;
 
 	template<class Point>
@@ -51,9 +67,19 @@ struct Field
 
 
 
+		// for near
+	inline bool isValid(int x, int y, int dir) const;
+
+	template<class Point>
+	inline bool isValid(Point const &p, int dir) const;
+
+	inline bool isValid(std::pair<int, int> const &p, int dir) const;
 
 
-	// correct & get
+
+
+
+	// correct
 	inline void correct(int &x, int &y) const;
 
 	template<class Point>
@@ -62,12 +88,11 @@ struct Field
 	inline void correct(std::pair<int, int> &p) const;
 
 
-	void inline get(value_type const *el, int &x, int &y) const;
 
-	template<class Point>
-	void inline get(value_type const *el, Point &p) const;
 
-	inline void get(value_type const *el, std::pair<int, int> &p) const;
+
+	// get 
+	inline void get(value_type const *p, int &x, int &y) const;
 
 
 
@@ -132,6 +157,52 @@ struct Field
 	inline value_type const *operator[](int n) const;
 	inline value_type *operator[](int n);
 
+
+
+		// near at simple
+	inline value_type &near(int x, int y, int dir);
+	inline value_type const &near(int x, int y, int dir) const;
+
+		// near at for point
+	template<class Point>
+	inline value_type &near(Point const &p, int dir);
+
+	template<class Point>
+	inline value_type const &near(
+		Point const &p, int dir
+	) const;
+
+		// near at for std::pair
+	inline value_type &near(
+		std::pair<int, int> const &p, int dir
+	);
+
+	inline value_type const &near(
+		std::pair<int, int> const &p, int dir
+	) const;
+
+		
+		// near tape at simple
+	inline value_type &nearTape(int x, int y, int dir);
+	inline value_type const &nearTape(int x, int y, int dir) const;
+
+		// near at for point
+	template<class Point>
+	inline value_type &nearTape(Point const &p, int dir);
+
+	template<class Point>
+	inline value_type const &nearTape(
+		Point const &p, int dir
+	) const;
+
+		// near at for std::pair
+	inline value_type &nearTape(
+		std::pair<int, int> const &p, int dir
+	);
+
+	inline value_type const &nearTape(
+		std::pair<int, int> const &p, int dir
+	) const;
 
 
 

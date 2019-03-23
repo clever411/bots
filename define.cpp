@@ -10,7 +10,7 @@ using namespace sf;
 // SFML
 RenderWindow window;
 VideoMode vmode = VideoMode::getDesktopMode();
-char const *TITLE = "Bot World";
+char const *TITLE = "The Wonderful World";
 unsigned int FRAMERATE_LIMIT = 60u;
 
 Color const backgroundcolor(0xfd, 0xea, 0xa8);
