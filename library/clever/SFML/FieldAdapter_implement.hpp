@@ -9,7 +9,11 @@ template<typename ValueType, class PrinterType>
 FieldAdapter<ValueType, PrinterType>::FieldAdapter(
 	fieldptr_type field,
 	sf::Vector2f const &size
-) {}
+): field_(field)
+{
+	setSize(size);
+	return;
+}
 
 
 

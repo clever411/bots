@@ -60,7 +60,7 @@ int main( int argc, char *argv[] )
 		summen, grounden,
 		planten, boten;
 
-	static constexpr int const LABELS_SIZE = 7;
+	static constexpr int const LABELS_COUNT = 7;
 	Text *labels[] = {
 		&agelabel, &speedlabel,
 		&summenlabel, &groundenlabel, &plantenlabel,
@@ -163,9 +163,11 @@ int main( int argc, char *argv[] )
 			isbkey || isikey || isleft || Mouse::isButtonPressed( Mouse::Button::Right )
 		)
 		{
-			auto point = adapter.cursorOn(
-				Vector2f(Mouse::getPosition(window)) -
-				adapter.getPosition()
+			PointI point(
+				adapter.cursorOn(
+					Vector2f(Mouse::getPosition(window)) -
+					adapter.getPosition()
+				)
 			);
 			if(field.isValid(point))
 			{
@@ -216,13 +218,13 @@ int main( int argc, char *argv[] )
 					{
 						Bot *bot = new Bot(Bot::DEFAULT);
 						bot->energy = bot->budprice();
-						field.push( point.first, point.second, bot );
+						field.push( point.x, point.y, bot );
 					}
 					else if(isleft)
-						field.fillground(point.first, point.second);
+						field.fillground(point.x, point.y);
 					else
 						field.push(
-							point.first, point.second,
+							point.x, point.y,
 							new Plant(Plant::DEFAULT)
 						);
 				}
@@ -309,7 +311,7 @@ int main( int argc, char *argv[] )
 		}
 
 			// update text labels
-		for(int i = 0; i < LABELS_SIZE; ++i)
+		for(int i = 0; i < LABELS_COUNT; ++i)
 			if( strings[i]->isChanged() )
 				labels[i]->setString( strings[i]->get() );
 

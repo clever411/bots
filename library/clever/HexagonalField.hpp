@@ -1,10 +1,9 @@
-#ifndef CLEVER_FIELD_HPP
-#define CLEVER_FIELD_HPP
+#ifndef CLEVER_HEXAGONAL_FIELD_HPP
+#define CLEVER_HEXAGONAL_FIELD_HPP
 
 #include <cstring>
 #include <utility>
 
-#include <clever/IostreamFunction.hpp>
 #include <clever/Point.hpp>
 
 
@@ -16,71 +15,53 @@ namespace clever
 
 
 
-template<typename ValueType>
-struct Field
+
+
+template<typename T>
+struct HexagonalField
 {
 	// types
-	typedef ValueType value_type;
+	typedef T value_type;
 	
 	
 	
 	
 	
-	// static const members
-	static constexpr int const OFFSET_COUNT = 8;
+	// static constants
+	static constexpr int const OFFSET_COUNT = 6;
 	static constexpr int const OFFSET[OFFSET_COUNT][2] = {
-		{ -1, -1 }, { 0, -1 }, { 1, -1 }, //  Directions:
-		                       { 1, 0  }, //  0  1  2
-		                       { 1, 1  }, //  7  *  3
-		            { 0, 1  },            //  6  5  4
-		{ -1, 1  },                       // 
-		{ -1, 0  },                       // 
+		{ 0, -2 }, { 1, -1 }, { 1, 1 },   // начиная сверху,
+		{ 0, 2 },  { -1, 1 }, { -1, -1 }  // по часовой стрелке
 	};
 	
-
-
-
-
+	
+	
+	
+	
 	// data-members
-	int w = 0, h = 0;
-	value_type *d = nullptr;
+	value_type *d;
+	int w, h;
 	
 	
 	
 	
 	
 	// init, free
-	inline Field &init();
-	inline Field &init(int width, int height);
-	inline Field &free();
+	inline HexagonalField &init();
+	inline HexagonalField &init(int width, int height);
+	inline HexagonalField &free();
 
 
 
-	// clear & zeroize
-	inline Field &clear();
-	inline Field &clear(value_type const &value);
-
-	inline Field &clearline(int line);
-	inline Field &clearline(
-		value_type const &value, int line
-	);
-
-	inline Field &clearlines(
-		int bline, int nline
-	);
-	inline Field &clearlines(
-		value_type const &value,
-		int bline, int nline
-	);
-
-	inline Field &zeroize();
-	inline Field &zeroize(int line);
-	inline Field &zeroize(int bline, int nline);
+	// clear, zeroize
+	inline HexagonalField &clear();
+	inline HexagonalField &clear(value_type const &val);
+	inline HexagonalField &zeroize();
 
 
 
 
-
+	
 	// check vlaid
 		// simple
 	inline bool isValid(int x, int y) const;
@@ -98,8 +79,6 @@ struct Field
 
 
 
-
-
 	// correct
 	inline void correct(int &x, int &y) const;
 
@@ -108,16 +87,24 @@ struct Field
 
 
 
-
-
 	// get 
-	inline void get(int i, int &x, int &y) const;
-	inline void get(value_type const *p, int &x, int &y) const;
-	inline int get(int x, int y) const;
+	inline void getxy(int i, int &x, int &y) const;
+	inline PointI getxy(int i) const;
+
+	inline void getxy(value_type const *p, int &x, int &y) const;
+	inline PointI getxy(value_type const *p) const;
+
+	inline int geti(int x, int y) const;
+
+	template<class Point>
+	inline int geti(Point const &p) const;
 
 
 
-	inline Point<float> point(int x, int y, double a) const;
+	// geometry origin
+	inline PointF origin(int x, int y, float a) const;
+	inline PointF origin(PointI const &p, float a) const;
+	inline PointF origin(value_type const *p, float a) const;
 
 
 
@@ -192,12 +179,6 @@ struct Field
 
 
 
-		// operator at
-	inline value_type const *operator[](int n) const;
-	inline value_type *operator[](int n);
-
-
-
 
 
 	// iterators
@@ -221,40 +202,18 @@ struct Field
 
 
 
-	template<class Ostream>
-	Ostream &print(
-		Ostream &os,
-		std::string const &elterm = "\t",
-		std::string const &lnterm = "\n"
-	) const;
-	
-	
-	
-	
-	
-};	
+};
 
 
 
 
 
-#include "Field_implement.hpp"
+#include "HexagonalField_implement.hpp"
 
 
 
 
 
-}
-
-
-
-
-
-template<class Ostream, typename ValueType>
-Ostream &operator<<(Ostream &os, clever::Field<ValueType> const &toprint)
-{
-	toprint.print(os);
-	return os;
 }
 
 

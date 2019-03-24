@@ -36,7 +36,7 @@ public:
 	// constructor
 	FieldAdapter(
 		fieldptr_type field = nullptr,
-		sf::Vector2f const &size = {0.0f, 0.0f}
+		sf::Vector2f const &size = {400.0f, 200.0f}
 	);
 
 
@@ -46,7 +46,7 @@ public:
 	// using methods
 	FieldAdapter &update();
 
-	void draw(
+	virtual void draw(
 		sf::RenderTarget &target,
 		sf::RenderStates states = sf::RenderStates::Default
 	) const override;
