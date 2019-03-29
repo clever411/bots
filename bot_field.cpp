@@ -30,7 +30,7 @@ Cell const Cell::DEFAULT = {
 
 std::default_random_engine dre( time(0) );
 std::uniform_real_distribution<double> realdis(0.0, 1.0);
-std::uniform_int_distribution<int> dirdis(0, 7);
+std::uniform_int_distribution<int> dirdis(0, BotField::OFFSET_COUNT-1);
 std::uniform_int_distribution<int> mutdis(0, Bot::CHARACTERS_COUNT-1);
 
 
@@ -106,9 +106,9 @@ BotField &BotField::free()
 	{
 		if(b->plant)
 			delete b->plant;
-		else if(b->bot)
+		if(b->bot)
 			delete b->bot;
-		else if(b->body)
+		if(b->body)
 			delete b->body;
 	}
 
@@ -122,7 +122,8 @@ BotField &BotField::free()
 void BotField::init_botfield(int width, int height)
 {
 	init(width, height);
-	clear(Cell::DEFAULT);
+	zeroize();
+	// clear(Cell::DEFAULT);
 	return;
 }
 
@@ -132,9 +133,9 @@ void BotField::reset()
 	{
 		if(b->plant)
 			delete b->plant;
-		else if(b->bot)
+		if(b->bot)
 			delete b->bot;
-		else if(b->body)
+		if(b->body)
 			delete b->body;
 	}
 
@@ -171,20 +172,21 @@ void BotField::update_ground()
 	// main
 	double delta;
 
-	for(int y = 0; y < h; ++y)
-	for(int x = 0; x < w; ++x)
+	int x, y;
+	for(auto b = begin(), e = end(); b != e; ++b)
 	{
+		getxy(b, x, y);
 		delta = at(x, y).energy * Cell::SMOOTH;
 		at(x, y).energy -= delta;
 
 		delta /= BotField::OFFSET_COUNT;
 		for(int i = 0; i < OFFSET_COUNT; ++i)
-			smoothf_.nearTape(x, y, i) += delta;
+			smoothf_.neart(x, y, i) += delta;
 	}
 
-	for(int y = 0; y < h; ++y)
-	for(int x = 0; x < w; ++x)
+	for(auto b = begin(), e = end(); b != e; ++b)
 	{
+		getxy(b, x, y);
 		at(x, y).energy += smoothf_.at(x, y);
 	}
 
@@ -201,6 +203,7 @@ void BotField::update_standing()
 
 	for(auto cell = begin(), e = end(); cell != e; ++cell)
 	{
+		// plant
 		if(cell->plant)
 		{
 			plant = cell->plant;
@@ -213,7 +216,9 @@ void BotField::update_standing()
 			plant->energy += delta;
 			planten += delta;
 		}
-		else if(cell->body)
+
+		// body
+		if(cell->body)
 		{
 			body = cell->body;
 			delta = Body::ROT_SPEED * pow(
@@ -239,8 +244,10 @@ void BotField::update_standing()
 				++body->age;
 			}
 		}
-		else if(
-			!cell->bot &&
+
+		// saw plant
+		if(
+			!cell->plant && !cell->bot && !cell->body &&
 			(
 				cell->energy /
 				Cell::DEFAULT_GROUND_ENERGY
@@ -280,7 +287,7 @@ void BotField::update_bots()
 	{
 		cell = *b;
 		bot = cell->bot;
-		get(cell, x, y);
+		getxy(cell, x, y);
 
 
 		// step
@@ -321,7 +328,7 @@ void BotField::update_bots()
 			do
 			{
 				choice = dirdis(dre);
-				to = &nearTape(x, y, choice);
+				to = &neart(x, y, choice);
 				++count;
 			}
 			while( (to->plant || to->bot || to->body) && count < 16 );
@@ -340,7 +347,7 @@ void BotField::update_bots()
 		do
 		{
 			choice = dirdis(dre);
-			to = &nearTape(x, y, choice);
+			to = &neart(x, y, choice);
 			++count;
 		}
 		while( ( to->bot || to->body ) && count < 16 );
@@ -426,11 +433,24 @@ void BotField::random_fill(int cellcount)
 	int x, y;
 	for(int i = 0; i < cellcount; ++i)
 	{
-		x = widthdis(dre);
 		y = heightdis(dre);
+		x = widthdis(dre)*2 + (y%2 ? 1 : 0);
 		fillground(x, y);
 	}
 
+	return;
+}
+
+void BotField::ravage_ground(double k)
+{
+	double delta;
+	for(auto b = begin(), e = end(); b != e; ++b)
+	{
+		delta = b->energy * k;
+		b->energy -= delta;
+		grounden -= delta;
+		summen -= delta;
+	}
 	return;
 }
 

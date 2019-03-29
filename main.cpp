@@ -31,7 +31,7 @@ int main( int argc, char *argv[] )
 	init_speedlabel();
 	init_enslabel();
 	
-	
+
 	
 	
 
@@ -110,6 +110,8 @@ int main( int argc, char *argv[] )
 					field.random_fill(100);
 					upfield = true;
 					break;
+				case Keyboard::G:
+					field.ravage_ground(0.1);
 				case Keyboard::Add: case Keyboard::Up:
 					if( updatespeed < 1000.0 )
 					{

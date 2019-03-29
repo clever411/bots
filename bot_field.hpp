@@ -4,7 +4,7 @@
 #include <list>
 #include <random>
 
-#include <clever/Field.hpp>
+#include <clever/HexagonalField.hpp>
 
 
 
@@ -29,12 +29,12 @@ struct Bot
 	static constexpr int const
 		CHARACTERS_COUNT = 5;
 	static constexpr double const
-		MAX_ENERGY = 500.0,
-		STEP_PRICE = 0.0,
-		AGE_STEP_TAX = 0.001,
-		AGE_DIE_TAX = 0.5,
-		BUD_REQ = 300.0,
-		BUD_PRICE = 100.0,
+		MAX_ENERGY = 1000.0,
+		STEP_PRICE = 1.0,
+		AGE_STEP_TAX = 0.1,
+		AGE_DIE_TAX = 5.0,
+		BUD_REQ = 400.0,
+		BUD_PRICE = 200.0,
 		MAX_MUTATION = 0.25,
 		MUTATION_POWER = 0.02;
 
@@ -82,8 +82,8 @@ struct Bot
 struct Body
 {
 	static constexpr double const
-		ROT_SPEED = 0.5,
-		ROT_ACCELERATION = 1.04;
+		ROT_SPEED = 1.0,
+		ROT_ACCELERATION = 1.1;
 
 	double energy;
 	int age;
@@ -110,7 +110,7 @@ struct Cell
 
 
 // core
-struct BotField: public clever::Field<Cell>
+struct BotField: public clever::HexagonalField<Cell>
 {
 	// members
 	std::list<Cell*> bots = {};
@@ -145,11 +145,12 @@ struct BotField: public clever::Field<Cell>
 	double fillground(int x, int y);
 
 	void random_fill(int cellcount);
+	void ravage_ground(double k);
 
 
 
 private:
-	clever::Field<double> smoothf_ = {0, 0, nullptr};
+	clever::HexagonalField<double> smoothf_ = {0, 0, nullptr};
 
 
 

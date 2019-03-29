@@ -34,20 +34,41 @@ void init_field()
 
 void init_adapter()
 {
+	// field
 	shared_ptr<field_type> p(
 		&field,
 		[](field_type *) { return; }
 	);
-	adapter.setField( p ).
+
+	// printer
+	adapter_type::printerptr_type printer = make_shared<printer_type>();
+
+	printer->plantgrad_ = Gradient::gen('g', 'r');
+	printer->plantgrad_.colors[0].a = 0xaa;
+	printer->plantgrad_.colors[1].a = 0xee;
+
+	printer->botgrad_ = Gradient{ { sf::Color(0xa0, 0x00, 0x00), sf::Color(0xff, 0x80, 0x80) } };
+	printer->botgrad_.colors[0].a = 0xaa;
+	printer->botgrad_.colors[1].a = 0xee;
+
+	printer->bodygrad_ = Gradient::gen('b', 'r');
+	printer->bodygrad_.colors[0].a = 0xaa;
+	printer->bodygrad_.colors[1].a = 0xee;
+
+	printer->emptygrad_ = { {
+		Color(0x00, 0x00, 0x00, 0x00),
+		Color(0x00, 0x00, 0x00, 0xff)
+	} };
+
+	// set to adapter
+	adapter.setField(p).
+	setPrinter(printer).
 	setSize(
 		Vector2f( window.getSize() )
 	).
-	update().
-	setGridColor(Color(gridcolor)).
-	setBordertocell(0.0).
 	setDrawGridEnable(false).
-	setDrawBoundsEnable(false).
-	update();
+	setGridThickness(2.0f).
+	setGridColor(sf::Color::White);
 
 
 	return;

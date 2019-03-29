@@ -38,6 +38,17 @@ inline std::string cutzero(std::string &&s)
 
 
 
+inline int tape(int i, int max)
+{
+	return i < 0 ?
+		max-1 - (-i-1)%max :
+		i % max;
+}
+
+
+
+
+
 }
 
 

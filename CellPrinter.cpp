@@ -1,88 +1,65 @@
 #include "CellPrinter.hpp"
 
+using namespace clever;
+using namespace sf;
+
 
 
 
 
 // core
-CellPrinter::CellPrinter(Cell const &cell)
+CellPrinter::CellPrinter()
+{
+	setPointCount(6);
+	setRotation(90);
+	setSideSize(30.0f);
+	return;
+}
+
+CellPrinter::CellPrinter(Cell const &cell):
+	CellPrinter()
 {
 	set(cell);
 	return;
 }
 
+
+CellPrinter &CellPrinter::setSideSize(float a)
+{
+	setRadius(a);
+	setOrigin(
+		getLocalBounds().width / 2.0f,
+		getLocalBounds().height / 2.0f
+	);
+	return *this;
+}
+
 CellPrinter &CellPrinter::set(Cell const &cell)
 {
-	static constexpr int const
-		WHITE = 0xaa;
-	static constexpr auto const
-		fun = [](int i) { return i > WHITE ? WHITE : i; };
-
 	double k;
-
-	if(cell.body)
-	{
-		if(last_ != body)
-		{
-			// set body
-		}
-		k = cell.body->energy / (Bot::AGE_DIE_TAX * 100);
-		if(k > 1.0)
-			k = 1.0;
-		setFillColor( sf::Color(
-			0xaa, 0x00, 0xaa,
-			int(0xff * k)
-		) );
-
-		last_ = body;
-		return *this;
-	}
-
-	if(last_ == body)
-	{
-		// set no body
-	}
-
 	if(cell.plant)
 	{
 		k = cell.plant->energy / Plant::MAX_ENERGY;
-		setFillColor( sf::Color(
-			WHITE - fun( int(0xff * 2*k) ),
-			0xff - int(k > 0.5 ? 0xff*(k-0.5) : 0),
-			WHITE - fun( int(0xff * 2*k) ),
-			0xaa
-		) );
-
-		last_ = plant;
+		setFillColor( plantgrad_(k) );
 		return *this;
 	}
 
 	if(cell.bot)
 	{
 		k = (cell.bot->energy - cell.bot->dieedge()) / Bot::MAX_ENERGY * 2;
-		if(k > 1.0)
-			k = 1.0;
-		setFillColor( sf::Color(
-			0xff - int(k > 0.5 ? 0xff*(k-0.5) : 0),
-			WHITE - fun( int(0xff * 2*k) ),
-			WHITE - fun( int(0xff * 2*k) ),
-			0xaa
-		) );
-
-		last_ = bot;
+		setFillColor( botgrad_(k) );
 		return *this;
 	}
 
-	// if empty
+	if(cell.body)
+	{
+		k = cell.body->energy / (Bot::AGE_DIE_TAX * 200);
+		setFillColor( bodygrad_(k) );
+		return *this;
+	}
+
 	k = cell.energy / Cell::DEFAULT_GROUND_ENERGY;
-	if(k > 1.0)
-		k = 1.0;
-	setFillColor( sf::Color(
-		0, 0, 0, int(255*k)
-	) );
-
-
-	last_ = empty;
+	setFillColor( emptygrad_(k) );
 	return *this;
 }
 

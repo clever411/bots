@@ -2,9 +2,13 @@
 #define CLEVER_HEXAGONAL_FIELD_HPP
 
 #include <cstring>
+#include <iterator>
+#include <type_traits>
 #include <utility>
 
+#include <clever/HelpFunction.hpp>
 #include <clever/Point.hpp>
+#include <clever/Type.hpp>
 
 
 
@@ -22,6 +26,130 @@ struct HexagonalField
 {
 	// types
 	typedef T value_type;
+
+
+
+		// iterator-class
+private:
+	struct Simple {};
+	struct Const {};
+	struct TapeAt {};
+
+	template<class IsConst, class TapeMode>
+	class Iterator: public std::iterator<
+		std::bidirectional_iterator_tag,
+		typename IF<
+			std::is_same<IsConst, Const>::value,
+			HexagonalField::value_type const,
+			HexagonalField::value_type
+		>::value_type
+	>
+	{
+	public:
+		// types
+		typedef typename Iterator::value_type value_type;
+
+		typedef typename IF<
+			std::is_same<IsConst, Const>::value,
+			HexagonalField const, HexagonalField
+		>::value_type field_type;
+
+
+
+
+
+		// copy
+		template<class C, class TM>
+		Iterator( Iterator<C, TM> const &tocp );
+
+		template<class C, class TM>
+		Iterator &operator=(Iterator<C, TM> const &rhs);
+		
+		
+
+		// move
+		Iterator &operator++();
+		inline Iterator operator++(int);
+
+		Iterator &operator--();
+		inline Iterator operator--(int);
+
+
+		// at
+		inline value_type &operator*() const;
+		inline value_type &operator->() const;
+
+		inline value_type *base() const;
+		inline PointI point() const;
+
+
+
+		// get info
+		template<class C, class TM>
+		bool operator==(Iterator<C, TM> const &rhs) const;
+
+		template<class C, class TM>
+		inline bool operator!=(Iterator<C, TM> const &rhs) const;
+
+		inline bool isend() const;
+
+		// создаёт новый итератор, который можно потом изменять:
+		// отправить, например, в функцию make_reverse_iterator;
+		// из этого итератора может выйти. Но создаётся новый! В
+		// цикле вызывать эту функцию для проверки дошёл ли до 
+		// конца итератор - нельзя, используй для этого либо isend,
+		// либо iterendc
+		Iterator iterend() const;
+		inline Iterator const &iterendc() const;
+		
+
+
+	private:
+		friend class HexagonalField;
+
+		static Iterator create_iterend();
+
+
+
+		// methods
+		Iterator();
+		Iterator(
+			field_type &field,
+			int left = 0, int top = 0,
+			int width = -1, int height = -1
+		);
+
+		inline void plusplus(Simple);
+		inline void plusplus(TapeAt);
+
+		inline void minusminus(Simple);
+		inline void minusminus(TapeAt);
+
+
+
+		// data-members
+		int top, left, width, height, fw, fh;
+		int x, y;
+		value_type *d, *fd;
+
+
+
+
+	};
+
+
+
+public:
+		// other
+	typedef Iterator<Simple, Simple> iterator_type;
+	typedef Iterator<Const, Simple> const_iterator_type;
+	typedef Iterator<Simple, TapeAt> iterator_tape_type;
+	typedef Iterator<Const, TapeAt> const_iterator_tape_type; 
+	
+	
+	
+	
+	
 	
 	
 	
@@ -39,8 +167,8 @@ struct HexagonalField
 	
 	
 	// data-members
-	value_type *d;
 	int w, h;
+	value_type *d;
 	
 	
 	
@@ -130,18 +258,18 @@ struct HexagonalField
 
 
 		// tape at simple
-	inline value_type &tapeAt(int x, int y);
-	inline value_type const &tapeAt(int x, int y) const;
+	inline value_type &att(int x, int y);
+	inline value_type const &att(int x, int y) const;
 
 
 		// tape at for point
 	template<class Point>
-	inline value_type const &tapeAt(
+	inline value_type const &att(
 		Point const &p
 	) const;
 
 	template<class Point>
-	inline value_type &tapeAt(
+	inline value_type &att(
 		Point const &p
 	);
 
@@ -164,16 +292,16 @@ struct HexagonalField
 		
 
 		// near tape at simple
-	inline value_type &nearTape(int x, int y, int dir);
-	inline value_type const &nearTape(int x, int y, int dir) const;
+	inline value_type &neart(int x, int y, int dir);
+	inline value_type const &neart(int x, int y, int dir) const;
 
 
 		// near at for point
 	template<class Point>
-	inline value_type &nearTape(Point const &p, int dir);
+	inline value_type &neart(Point const &p, int dir);
 
 	template<class Point>
-	inline value_type const &nearTape(
+	inline value_type const &neart(
 		Point const &p, int dir
 	) const;
 
@@ -200,6 +328,45 @@ struct HexagonalField
 
 
 
+		// class-iterator 
+			// simple
+	inline iterator_type iterator(
+		int left = 0, int top = 0,
+		int width = -1, int height = -1
+	);
+	inline iterator_type const &iterend() const;
+
+			// simple const
+	inline const_iterator_type citerator(
+		int left = 0, int top = 0,
+		int width = -1, int height = -1
+	) const;
+	inline const_iterator_type const &citerend() const;
+
+
+			// tape
+	inline iterator_tape_type iteratort(
+		int left = 0, int top = 0,
+		int width = -1, int height = -1
+	);
+	inline iterator_tape_type const &iterendt() const;
+
+			// tape const
+	inline const_iterator_tape_type citeratort(
+		int left = 0, int top = 0,
+		int width = -1, int height = -1
+	) const;
+	inline const_iterator_tape_type const &citerendt() const;
+
+
+
+
+
+	template<class Ostream>
+	Ostream &print( Ostream &os ) const;
+
+
+
 
 
 };
@@ -215,6 +382,19 @@ struct HexagonalField
 
 
 }
+
+
+
+
+
+template<class Ostream, typename ValueType>
+Ostream &operator<<(Ostream &os, clever::HexagonalField<ValueType> const &toprint)
+{
+	toprint.print(os);
+	return os;
+}
+
+
 
 
 

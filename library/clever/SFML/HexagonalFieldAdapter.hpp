@@ -49,6 +49,7 @@ public:
 	HexagonalFieldAdapter &update();
 
 	PointI cursorOn(int x, int y) const;
+	inline PointI cursorOn(PointI const &p) const;
 
 	virtual void draw(
 		sf::RenderTarget &target,
@@ -58,24 +59,31 @@ public:
 	
 	
 	
-	
-	// field
+	// set, get
+		// field
 	HexagonalFieldAdapter &setField(fieldptr_type newfield);
 	fieldptr_type getField() const;
 	
-	
-	
-	// printer
+
+		// printer
 	HexagonalFieldAdapter &setPrinter(printerptr_type newprinter);
 	printerptr_type getPrinter() const;
 	
 	
-	
-	// size
+		// size
 	HexagonalFieldAdapter &setSize(sf::Vector2f const &newsize);
 	sf::Vector2f const &getSize() const;
 
 
+		// grid
+	HexagonalFieldAdapter &setDrawGridEnable(bool enable);
+	bool getDrawGridEnable() const;
+
+	HexagonalFieldAdapter &setGridThickness(float newthick);
+	float getGridThickness() const;
+
+	HexagonalFieldAdapter &setGridColor(sf::Color const &newcolor);
+	sf::Color const &getGridColor() const;
 
 
 
@@ -85,12 +93,18 @@ private:
 	// data-members
 		// main
 	fieldptr_type field_;
-	mutable printerptr_type printer_;
+	mutable printerptr_type printer_ = printerptr_type(new printer_type);
 
 		// sizes
 	sf::Vector2f size_;
 	float side_;
 
+		// background
+	sf::RenderTexture rtexture_;
+	sf::Sprite sprite_;
+	bool drawgrid_ = true;
+	float gridthick_ = 2.0f;
+	sf::Color gridcolor_ = sf::Color::White;
 
 
 };

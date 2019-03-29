@@ -4,28 +4,27 @@
 #include <SFML/Graphics.hpp>
 
 #include "bot_field.hpp"
+#include "Gradient.hpp"
 
 
 
 
 
-class CellPrinter: public sf::RectangleShape
+class CellPrinter: public sf::CircleShape
 {
 public:
-	enum Type
-	{
-		plant, bot, body, empty, none
-	};
+	CellPrinter();
+	CellPrinter(Cell const &cell);
 
-	CellPrinter(Cell const &cell = Cell::DEFAULT);
-
-
+	CellPrinter &setSideSize(float a);
 	CellPrinter &set(Cell const &cell);
 
 
-
-private:
-	Type last_ = none;
+	clever::Gradient
+		plantgrad_,
+		botgrad_,
+		bodygrad_,
+		emptygrad_;
 
 
 

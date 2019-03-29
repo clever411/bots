@@ -21,9 +21,9 @@ rerun: clean $(EXECUTABLE)
 
 
 
-$(EXECUTABLE): main.o define.o init.o bot_field.o CellPrinter.o Stat.o
+$(EXECUTABLE): main.o define.o init.o bot_field.o CellPrinter.o Gradient.o Stat.o
 	g++ $(LDFLAGS) -o $(EXECUTABLE) \
-	main.o define.o init.o bot_field.o CellPrinter.o Stat.o $(LIBS)
+	main.o define.o init.o bot_field.o CellPrinter.o Gradient.o Stat.o $(LIBS)
 
 main.o: main.cpp declare.hpp init.hpp Stat.hpp
 	g++ $(CFLAGS) -o main.o main.cpp
@@ -43,10 +43,15 @@ bot_field.o: bot_field.cpp bot_field.hpp
 	g++ $(CFLAGS) -o bot_field.o bot_field.cpp
 
 
-CellPrinter.o: CellPrinter.cpp CellPrinter.hpp
+CellPrinter.o: CellPrinter.cpp CellPrinter.hpp Gradient.hpp
 	g++ $(CFLAGS) -o CellPrinter.o CellPrinter.cpp
 
-CellPrinter.hpp: bot_field.hpp
+CellPrinter.hpp: bot_field.hpp Gradient.hpp
+
+
+Gradient.o: Gradient.cpp Gradient.hpp
+	g++ $(CFLAGS) -o Gradient.o Gradient.cpp
+
 
 
 Stat.o: Stat.cpp Stat.hpp

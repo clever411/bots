@@ -50,6 +50,14 @@ PointI HexagonalFieldAdapter<T, Printer>::cursorOn(
 }
 
 template<typename T, class Printer>
+inline PointI HexagonalFieldAdapter<T, Printer>::cursorOn(
+	PointI const &p
+) const
+{
+	return cursorOn(p.x, p.y);
+}
+
+template<typename T, class Printer>
 void HexagonalFieldAdapter<T, Printer>::draw(
 	sf::RenderTarget &target,
 	sf::RenderStates states
@@ -57,6 +65,8 @@ void HexagonalFieldAdapter<T, Printer>::draw(
 {
 	states.transform *= getTransform();
 	PointF pos;
+	if(drawgrid_)
+		target.draw(sprite_, states);
 	for(auto b = field_->begin(), e = field_->end(); b != e; ++b)
 	{
 		pos = field_->origin(b, side_);
@@ -142,16 +152,120 @@ HexagonalFieldAdapter<T, Printer>::getSize() const
 
 
 
+// grid
+template<typename T, class Printer>
+HexagonalFieldAdapter<T, Printer> &
+HexagonalFieldAdapter<T, Printer>::setDrawGridEnable(bool enable)
+{
+	drawgrid_ = enable;
+	adjust_();
+	return *this;
+}
+
+template<typename T, class Printer>
+bool 
+HexagonalFieldAdapter<T, Printer>::getDrawGridEnable() const
+{
+	return drawgrid_;
+}
+
+
+
+template<typename T, class Printer>
+HexagonalFieldAdapter<T, Printer> &
+HexagonalFieldAdapter<T, Printer>::setGridThickness(float newthick)
+{
+	gridthick_ = newthick;
+	adjust_();
+	return *this;
+}
+
+template<typename T, class Printer>
+float 
+HexagonalFieldAdapter<T, Printer>::getGridThickness() const
+{
+	return gridthick_;
+}
+
+
+
+template<typename T, class Printer>
+HexagonalFieldAdapter<T, Printer> &
+HexagonalFieldAdapter<T, Printer>::setGridColor(
+	sf::Color const &newcolor
+)
+{
+	gridcolor_ = newcolor;
+	adjust_();
+	return *this;
+}
+
+template<typename T, class Printer>
+sf::Color const &
+HexagonalFieldAdapter<T, Printer>::getGridColor() const
+{
+	return gridcolor_;
+}
+
+
+
+
+
+
 
 // private
 template<typename T, class Printer>
 void HexagonalFieldAdapter<T, Printer>::adjust_()
 {
+	if(!field_)
+		return;
 	side_ = std::min(
 		size_.x / ( 3.0f * field_->w + 0.5f ),
 		1.154701f*size_.y / ( 1.0f + field_->h )
 	);
-	printer_->setSideSize(side_);
+	size_.x = (3.0f * field_->w + 0.5) * side_;
+	size_.y = 0.866025 * side_ * (1 + field_->h);
+	printer_->setSideSize(
+		side_ - (drawgrid_ ? gridthick_/2.0f : 0.0f)
+	);
+
+	if(!drawgrid_)
+		return;
+
+
+
+	// background
+		// prepare circle
+	sf::CircleShape circle;
+	circle.setPointCount(6);
+	circle.setRadius( side_ - gridthick_/2.0f );
+	circle.setRotation(90);
+	circle.setOrigin(
+		circle.getLocalBounds().width / 2.0f,
+		circle.getLocalBounds().height / 2.0f
+	);
+	circle.setFillColor(sf::Color::Transparent);
+	circle.setOutlineThickness( gridthick_ );
+	circle.setOutlineColor(gridcolor_);
+
+		// draw in rtexture
+	rtexture_.create(size_.x, size_.y);
+	rtexture_.clear(sf::Color::Transparent);
+	PointF pos;
+	for(auto b = field_->begin(), e = field_->end(); b != e; ++b)
+	{
+		pos = field_->origin(b, side_);
+		pos.x += side_;
+		pos.y += 0.866025*side_;
+		circle.setPosition(pos);
+		rtexture_.draw(circle);
+	}
+
+	rtexture_.display();
+	sprite_.setTexture( rtexture_.getTexture(), true );
+
+
+
 	return;
 }
 

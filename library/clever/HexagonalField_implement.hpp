@@ -128,14 +128,12 @@ inline void HexagonalField<ValueType>::correct(
 	int &x, int &y
 ) const
 {
+	x = x < 0 ?
+		2*w-1 - (-x-1)%(2*w) :
+		x % (2*w);
 	y = y < 0 ?
 		h-1 - (-y-1)%h :
 		y % h;
-	x /= 2;
-	x = x < 0 ?
-		w-1 - (-x-1)%w :
-		x % w;
-	x = x*2 + (y%2 ? 1 : 0);
 	return;
 }
 
@@ -297,7 +295,7 @@ HexagonalField<ValueType>::at(
 	// tape at simple
 template<typename ValueType>
 inline typename HexagonalField<ValueType>::value_type &
-HexagonalField<ValueType>::tapeAt(
+HexagonalField<ValueType>::att(
 	int x, int y
 )
 {
@@ -307,7 +305,7 @@ HexagonalField<ValueType>::tapeAt(
 
 template<typename ValueType>
 inline typename HexagonalField<ValueType>::value_type const &
-HexagonalField<ValueType>::tapeAt(
+HexagonalField<ValueType>::att(
 	int x, int y
 ) const
 {
@@ -320,21 +318,21 @@ HexagonalField<ValueType>::tapeAt(
 	// tape at for point
 template<typename ValueType> template<class Point>
 inline typename HexagonalField<ValueType>::value_type const &
-HexagonalField<ValueType>::tapeAt(
+HexagonalField<ValueType>::att(
 	Point const &p
 ) const
 {
-	return tapeAt(p.x, p.y);
+	return att(p.x, p.y);
 }
 
 template<typename ValueType>
 template<class Point>
 inline typename HexagonalField<ValueType>::value_type &
-HexagonalField<ValueType>::tapeAt(
+HexagonalField<ValueType>::att(
 	Point const &p
 )
 {
-	return tapeAt(p.x, p.y);
+	return att(p.x, p.y);
 }
 
 
@@ -390,11 +388,11 @@ HexagonalField<ValueType>::near(
 	// near tape at simple
 template<typename ValueType>
 inline typename HexagonalField<ValueType>::value_type &
-HexagonalField<ValueType>::nearTape(
+HexagonalField<ValueType>::neart(
 	int x, int y, int dir
 )
 {
-	return tapeAt(
+	return att(
 		x + OFFSET[dir][0],
 		y + OFFSET[dir][1]
 	);
@@ -402,11 +400,11 @@ HexagonalField<ValueType>::nearTape(
 
 template<typename ValueType>
 inline typename HexagonalField<ValueType>::value_type const &
-HexagonalField<ValueType>::nearTape(
+HexagonalField<ValueType>::neart(
 	int x, int y, int dir
 ) const
 {
-	return tapeAt(
+	return att(
 		x + OFFSET[dir][0],
 		y + OFFSET[dir][1]
 	);
@@ -418,11 +416,11 @@ HexagonalField<ValueType>::nearTape(
 template<typename ValueType>
 template<class Point>
 inline typename HexagonalField<ValueType>::value_type &
-HexagonalField<ValueType>::nearTape(
+HexagonalField<ValueType>::neart(
 	Point const &p, int dir
 )
 {
-	return tapeAt(
+	return att(
 		p.x + OFFSET[dir][0],
 		p.y + OFFSET[dir][1]
 	);
@@ -431,11 +429,11 @@ HexagonalField<ValueType>::nearTape(
 template<typename ValueType>
 template<class Point>
 inline typename HexagonalField<ValueType>::value_type const &
-HexagonalField<ValueType>::nearTape(
+HexagonalField<ValueType>::neart(
 	Point const &p, int dir
 ) const
 {
-	return tapeAt(
+	return att(
 		p.x + OFFSET[dir][0],
 		p.y + OFFSET[dir][1]
 	);
@@ -518,6 +516,426 @@ HexagonalField<ValueType>::end(
 ) const
 {
 	return d + (line+1)*w;
+}
+
+
+
+
+
+	// class-iterator
+		// simple
+template<typename ValueType>
+inline typename HexagonalField<ValueType>::iterator_type
+HexagonalField<ValueType>::iterator(
+	int left, int top,
+	int width, int height
+)
+{
+	return iterator_type(
+		*this,
+		left, top,
+		width, height
+	);
+}
+
+template<typename ValueType>
+inline typename HexagonalField<ValueType>::iterator_type const &
+HexagonalField<ValueType>::iterend() const
+{
+	return iterator_type::enditer();
+}
+
+
+		// simple const
+template<typename ValueType>
+inline typename HexagonalField<ValueType>::const_iterator_type
+HexagonalField<ValueType>::citerator(
+	int left, int top,
+	int width, int height
+) const
+{
+	return const_iterator_type(
+		*this,
+		left, top,
+		width, height
+	);
+}
+
+template<typename ValueType>
+inline typename HexagonalField<ValueType>::const_iterator_type const &
+HexagonalField<ValueType>::citerend() const
+{
+	return const_iterator_type::enditer();
+}
+
+
+
+		// tape
+template<typename ValueType>
+inline typename HexagonalField<ValueType>::iterator_tape_type
+HexagonalField<ValueType>::iteratort(
+	int left, int top,
+	int width, int height
+)
+{
+	return iterator_tape_type(
+		*this,
+		left, top,
+		width, height
+	);
+}
+
+template<typename ValueType>
+inline typename HexagonalField<ValueType>::iterator_tape_type const &
+HexagonalField<ValueType>::iterendt() const
+{
+	return iterator_tape_type::enditer();
+}
+
+
+		// tape const
+template<typename ValueType>
+inline typename HexagonalField<ValueType>::const_iterator_tape_type
+HexagonalField<ValueType>::citeratort(
+	int left, int top,
+	int width, int height
+) const
+{
+	return const_iterator_tape_type(
+		*this,
+		left, top,
+		width, height
+	);
+}
+
+template<typename ValueType>
+inline typename HexagonalField<ValueType>::const_iterator_tape_type const &
+HexagonalField<ValueType>::citerendt() const
+{
+	return const_iterator_tape_type::enditerc();
+}
+
+
+
+
+
+// print
+template<typename ValueType>
+template<class Ostream>
+Ostream &HexagonalField<ValueType>::print( Ostream &os ) const
+{
+	for(int y = 0; y < h; ++y)
+	{
+		if(y%2)
+			os << "   ";
+		for(int x = y%2; x < w*2; x += 2)
+		{
+			clever::print(os, at(x, y)) << "     ";
+		}
+		os << "\n\n";
+	}
+	return os;
+}
+
+
+
+
+
+
+
+// iterator-class
+// copy
+template<typename ValueType>
+template<class IsConst, class TapeMode>
+template<class C, class TM>
+HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::Iterator(
+	Iterator<C, TM> const &tocp
+):
+	left(tocp.left), top(tocp.top),
+	width(tocp.width), height(tocp.height),
+	fw(tocp.fw), fh(tocp.fh),
+	x(tocp.x), y(tocp.y),
+	d(tocp.d), fd(tocp.fd) {}
+
+template<typename ValueType>
+template<class IsConst, class TapeMode>
+template<class C, class TM>
+HexagonalField<ValueType>::Iterator<IsConst, TapeMode> &
+HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::operator=(
+	Iterator<C, TM> const &rhs
+)
+{
+	left = rhs.left;
+	top = rhs.top;
+	width = rhs.width;
+	height = rhs.height;
+	fw = rhs.fw;
+	fh = rhs.fh;
+	x = rhs.x;
+	y = rhs.y;
+	d = rhs.d;
+	fd = rhs.fd;
+	return *this;
+}
+
+
+
+
+
+// move
+template<typename ValueType>
+template<class IsConst, class TapeMode>
+HexagonalField<ValueType>::Iterator<IsConst, TapeMode> &
+HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::operator++()
+{
+	plusplus(TapeMode());
+	return *this;
+}
+
+template<typename ValueType>
+template<class IsConst, class TapeMode>
+HexagonalField<ValueType>::Iterator<IsConst, TapeMode>
+HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::operator++(int)
+{
+	auto athis = *this;
+	operator++();
+	return athis;
+}
+
+
+
+template<typename ValueType>
+template<class IsConst, class TapeMode>
+HexagonalField<ValueType>::Iterator<IsConst, TapeMode> &
+HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::operator--()
+{
+	minusminus(TapeMode());
+	return *this;
+}
+
+template<typename ValueType>
+template<class IsConst, class TapeMode>
+HexagonalField<ValueType>::Iterator<IsConst, TapeMode>
+HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::operator--(int)
+{
+	auto cp = *this;
+	operator--();
+	return cp;
+}
+
+
+
+
+
+// at
+template<typename ValueType>
+template<class IsConst, class TapeMode>
+typename HexagonalField<ValueType>::template Iterator<IsConst, TapeMode>::value_type &
+HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::operator*() const
+{
+	return *d;
+}
+
+template<typename ValueType>
+template<class IsConst, class TapeMode>
+typename HexagonalField<ValueType>::template Iterator<IsConst, TapeMode>::value_type &
+HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::operator->() const
+{
+	return *d;
+}
+
+
+
+template<typename ValueType>
+template<class IsConst, class TapeMode>
+inline typename HexagonalField<ValueType>::template Iterator<IsConst, TapeMode>::value_type *
+HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::base() const
+{
+	return d;
+}
+
+template<typename ValueType>
+template<class IsConst, class TapeMode>
+inline PointI HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::point() const
+{
+	return { x, y };
+}
+
+
+
+
+
+// get info
+	// compare
+template<typename ValueType>
+template<class IsConst, class TapeMode>
+template<class C, class TM>
+bool HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::operator==(
+	 Iterator<C, TM> const &rhs
+) const
+{
+	if(d)
+		return rhs.d ?
+			x == rhs.x && y == rhs.y :
+			isend();
+	return rhs.d ? 
+		rhs.isend() :
+		true;
+}
+
+template<typename ValueType>
+template<class IsConst, class TapeMode>
+template<class C, class TM>
+inline bool HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::operator!=(
+	Iterator<C, TM> const &rhs
+) const
+{
+	return !operator==(rhs);
+}
+
+
+
+	// end
+template<typename ValueType>
+template<class IsConst, class TapeMode>
+inline bool HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::isend() const
+{
+	return y == top+height;
+}
+
+template<typename ValueType>
+template<class IsConst, class TapeMode>
+inline HexagonalField<ValueType>::Iterator<IsConst, TapeMode>
+HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::iterend() const
+{
+	auto it = *this;
+	it.y = top+height;
+	it.x = left - (top%2 ? 1 : 0) + (it.y%2 ? 1 : 0);
+	return it;
+}
+
+template<typename ValueType>
+template<class IsConst, class TapeMode>
+inline HexagonalField<ValueType>::Iterator<IsConst, TapeMode> const &
+HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::iterendc() const
+{
+	static Iterator const singleton = create_iterend();
+	return singleton;
+}
+
+
+
+
+
+
+
+// private
+	// static
+template<typename ValueType>
+template<class IsConst, class TapeMode>
+HexagonalField<ValueType>::Iterator<IsConst, TapeMode>
+HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::create_iterend()
+{
+	Iterator iter;
+	iter.d = nullptr;
+	return iter;
+}
+
+
+
+
+
+	// constructor
+template<typename ValueType>
+template<class IsConst, class TapeMode>
+HexagonalField<ValueType>::template Iterator<IsConst, TapeMode>::Iterator(): d(nullptr) {}
+
+template<typename ValueType>
+template<class IsConst, class TapeMode>
+HexagonalField<ValueType>::template Iterator<IsConst, TapeMode>::Iterator(
+	field_type &field,
+	int left, int top,
+	int width, int height
+):
+	left(left), top(top),
+	width( width < 0 ? field.w-left : width ),
+	height( height < 0 ? field.h-top : height ),
+	fw(field.w), fh(field.h),
+	x(left), y(top),
+	d(&field.att(left, top)), fd(field.d) {}
+
+
+
+	// move
+template<typename ValueType>
+template<class IsConst, class TapeMode>
+inline void HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::plusplus(Simple)
+{
+	x += 2;
+	if( x/2 == left/2+width )
+	{
+		++y;
+		x = left/2*2 + y%2;
+		d += fw-width+1;
+	}
+	else
+		++d;
+
+	return;
+}
+
+template<typename ValueType>
+template<class IsConst, class TapeMode>
+inline void HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::plusplus(TapeAt)
+{
+	x += 2;
+	if( (x - (y%2 ? 1 : 0))/2 == (left - (top%2 ? 1 : 0))/2 + width )
+	{
+		++y;
+		x = left - (top%2 ? 1 : 0) + (y%2 ? 1 : 0);
+	}
+	d = fd + ( x < 0 ?
+		2*fw-1 - (-x-1)%(2*fw) :
+		x % (2*fw)
+	)/2 + tape(y, fh)*fw;
+
+
+	return;
+}
+
+
+
+template<typename ValueType>
+template<class IsConst, class TapeMode>
+inline void HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::minusminus(Simple)
+{
+	x -= 2;
+	if( (x - y%2)/2 == left/2-1 )
+	{
+		--y;
+		x = left - top%2 + y%2 + (width - 1)*2;
+	}
+	d = fd + x/2 + y*fw;
+
+	return;
+}
+
+template<typename ValueType>
+template<class IsConst, class TapeMode>
+inline void HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::minusminus(TapeAt)
+{
+	x -= 2;
+	if( (x - (y%2 ? 1 : 0))/2 == (left - (top%2 ? 1 : 0))/2 - 1 )
+	{
+		--y;
+		x = left - (top%2 ? 1 : 0) + (y%2 ? 1 : 0) + (width - 1)*2;
+	}
+	d = fd + ( x < 0 ?
+		2*fw-1 - (-x-1)%(2*fw) :
+		x % (2*fw)
+	)/2 + tape(y, fh)*fw;
+
+	return;
 }
 
 
