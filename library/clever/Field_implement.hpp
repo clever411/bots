@@ -43,8 +43,7 @@ inline Field<ValueType> &Field<ValueType>::clear(
 	value_type const &value
 )
 {
-	for(value_type *b = d, *e = d+w*h; b != e; ++b)
-		*b = value;
+	std::fill( begin(), end(), value );
 	return *this;
 }
 

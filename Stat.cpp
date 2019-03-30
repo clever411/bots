@@ -17,6 +17,7 @@ void Stat::add(
 	} );
 	return;
 }
+
 void Stat::write(char const *filename) const
 {
 	auto file = fopen(filename, "w");
@@ -35,6 +36,7 @@ void Stat::write(char const *filename) const
 	fclose(file);
 	return;
 }
+
 void Stat::reset()
 {
 	code_.clear();

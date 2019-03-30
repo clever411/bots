@@ -1,12 +1,15 @@
-#ifndef CLEVER_SFML_FIELD_ADAPTER_HPP
-#define CLEVER_SFML_FIELD_ADAPTER_HPP
+#ifndef CLEVER_HEXAGONAL_FIELD_ADAPTER_HPP
+#define CLEVER_HEXAGONAL_FIELD_ADAPTER_HPP
 
 #include <memory>
+#include <type_traits>
 
 #include <SFML/Graphics.hpp>
+#include <clever/Point.hpp>
+#include <clever/Type.hpp>
 
-#include <clever/Field.hpp>
-#include <clever/SFML/HelpFunction.hpp>
+
+// #include <clever/Field.hpp>
 
 
 
@@ -14,135 +17,151 @@
 
 namespace clever
 {
+	
+	
+	
+	
+	
+	
+	
+struct SquareFieldTag {};
+struct HexagonFieldTag {};
 
-
-
-
-
-template<typename ValueType, class PrinterType>
+template<class FieldType, class Printer, class FieldTag>
 class FieldAdapter: public sf::Transformable, public sf::Drawable
 {
-public:
+public:	
 	// types
-	typedef ValueType value_type;
-	typedef Field<value_type> field_type;
-	typedef std::shared_ptr< field_type > fieldptr_type;
-	typedef PrinterType printer_type;
-
-
-
-
-
-	// constructor
+	typedef FieldTag field_tag;
+	typedef typename FieldType::value_type value_type;
+	typedef FieldType field_type;
+	typedef std::shared_ptr<field_type> fieldptr_type;
+	typedef Printer printer_type;
+	typedef std::shared_ptr<printer_type> printerptr_type;
+	
+	
+	
+	
+	
+	// create
 	FieldAdapter(
 		fieldptr_type field = nullptr,
-		sf::Vector2f const &size = {400.0f, 200.0f}
+		PointF size = {400.0f, 200.0f}
 	);
-
-
-
-
-
-	// using methods
+	
+	
+	
+	
+	
+	// core
 	FieldAdapter &update();
+
+	inline PointI cursorOn(float x, float y) const;
+	PointI cursorOn(PointF p) const;
 
 	virtual void draw(
 		sf::RenderTarget &target,
 		sf::RenderStates states = sf::RenderStates::Default
 	) const override;
-
-
-	std::pair<int, int> cursorOn(
-		sf::Vector2f const &point
-	) const;
-
-
-
-	// size
-	FieldAdapter &resetResized();
-	bool isResized() const;
 	
-	FieldAdapter &setSize(sf::Vector2f const &newsize);
-	sf::Vector2f getSize() const;
-
-
-
-	// field
+	
+	
+	
+	// set, get
+		// field
 	FieldAdapter &setField(fieldptr_type newfield);
 	fieldptr_type getField() const;
-
-
-
-	// printer
-	FieldAdapter &setPrinter(printer_type const &newprinter);
-	printer_type const &getPrinter() const;
-
-
-
-	// border to cell ratio
-	FieldAdapter &setBordertocell(float newbordertocell);
-	float getBordertocell() const;
-
-
-
-	// bounds
-	FieldAdapter &setDrawBoundsEnable(bool enable);
-	bool isDrawBoundsEnable() const;
-
-	FieldAdapter &setBoundsWidth(float newboundswidth);
-	float getBoundsWidth() const;
-
-	FieldAdapter &setBoundsColor(sf::Color const &newboundscolor);
-	sf::Color const &getBoundsColor() const;
-
-
-
-	// grid
-	FieldAdapter &setDrawGridEnable(bool enable);
-	bool isDrawGridEnable() const;
-
-	FieldAdapter &setGridWidth(float newgridwidth);
-	float getGridWidth() const;
 	
-	FieldAdapter &setGridColor(sf::Color const &newgridcolor);
+
+		// printer
+	FieldAdapter &setPrinter(printerptr_type newprinter);
+	printerptr_type getPrinter() const;
+	
+	
+		// size
+	FieldAdapter &setSize(PointF size);
+	PointF getSize() const;
+
+
+		// grid
+	FieldAdapter &setDrawGridEnable(bool enable);
+	bool getDrawGridEnable() const;
+
+	FieldAdapter &setGridThickness(float newthick);
+	float getGridThickness() const;
+
+	FieldAdapter &setGridColor(sf::Color const &newcolor);
 	sf::Color const &getGridColor() const;
 
 
 
-
-
 private:
+	// function implement
+	struct SquareImplement
+	{
+		static constexpr PointF const OFF{ 0.5, 0.5 };
+
+		inline static PointI cursorOn(
+			PointF p, FieldAdapter const &f
+		);
+
+		inline static PointF off(float side);
+
+		inline static void adjust_size(FieldAdapter &f);
+
+		inline static void draw_grid(FieldAdapter &f);
+
+	};
+
+	struct HexagonImplement
+	{
+		static constexpr PointF const OFF{ 1.0, 0.866025 };
+
+		inline static PointI cursorOn(
+			PointF p, FieldAdapter const &f
+		);
+
+		inline static PointF off(float side);
+
+		inline static void adjust_size(FieldAdapter &f);
+
+		inline static void draw_grid(FieldAdapter &f);
+
+
+	};
+
+	typedef typename IF<
+		std::is_same< field_tag, SquareFieldTag>::value,
+		SquareImplement,
+		HexagonImplement
+	>::value_type imp;
+
+	friend imp;
+
+
+
+
+
+
+
+	// other
 	void adjust_();
 
-	// base
-	sf::Vector2f size_;
+	// data-members
+		// main
 	fieldptr_type field_;
-	mutable printer_type printer_;
-	sf::Vector2f boundsoffset_;
+	mutable printerptr_type printer_ = printerptr_type(new printer_type);
 
-	// border, cell
-	float bordersize = 0, _cellsize = 0;
-	float _bordertocell = 0.1;
+		// sizes
+	PointF size_;
+	float side_;
 
-	sf::RenderTexture _rtexture;
-	sf::Sprite _background;
-
-	// bounds
-	bool _drawbounds = true;
-	float _boundswidth = 5;
-	sf::Color _boundscolor = sf::Color::Black;
-
-	// grid
-	bool _drawgrid = true;
-	float _gridwidth = 4;
-	sf::Color _gridcolor = sf::Color::Black;
-
-	// technical
-	bool ischanged_ = false;
-	bool _isresized = false;
-
-
-
+		// background
+	sf::RenderTexture rtexture_;
+	sf::Sprite sprite_;
+	bool drawgrid_ = true;
+	float gridthick_ = 2.0f;
+	sf::Color gridcolor_ = sf::Color::White;
 
 
 };
@@ -151,8 +170,17 @@ private:
 
 
 
-// include implement
 #include "FieldAdapter_implement.hpp"
+
+
+
+
+// typedefs
+template<class FieldType, class PrinterType>
+using SquareFieldAdapter = FieldAdapter<FieldType, PrinterType, SquareFieldTag>;
+
+template<class FieldType, class PrinterType>
+using HexagonFieldAdapter = FieldAdapter<FieldType, PrinterType, HexagonFieldTag>;
 
 
 

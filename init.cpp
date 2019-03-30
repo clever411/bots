@@ -41,7 +41,7 @@ void init_adapter()
 	);
 
 	// printer
-	adapter_type::printerptr_type printer = make_shared<printer_type>();
+	auto printer = make_shared<printer_type>();
 
 	printer->plantgrad_ = Gradient::gen('g', 'r');
 	printer->plantgrad_.colors[0].a = 0xaa;
@@ -64,7 +64,7 @@ void init_adapter()
 	adapter.setField(p).
 	setPrinter(printer).
 	setSize(
-		Vector2f( window.getSize() )
+		makep<float>(window.getSize())
 	).
 	setDrawGridEnable(false).
 	setGridThickness(2.0f).

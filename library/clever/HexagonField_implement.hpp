@@ -1,15 +1,15 @@
 // init, free
 template<typename ValueType>
-inline HexagonalField<ValueType> &
-HexagonalField<ValueType>::init()
+inline HexagonField<ValueType> &
+HexagonField<ValueType>::init()
 {
 	d = new value_type[w*h];
 	return *this;
 }
 
 template<typename ValueType>
-inline HexagonalField<ValueType> &
-HexagonalField<ValueType>::init(
+inline HexagonField<ValueType> &
+HexagonField<ValueType>::init(
 	int width, int height
 )
 {
@@ -19,8 +19,8 @@ HexagonalField<ValueType>::init(
 }
 
 template<typename ValueType>
-inline HexagonalField<ValueType> &
-HexagonalField<ValueType>::free()
+inline HexagonField<ValueType> &
+HexagonField<ValueType>::free()
 {
 	delete[] d;
 	return *this;
@@ -32,7 +32,7 @@ HexagonalField<ValueType>::free()
 
 // clear, zeroize
 template<typename ValueType>
-inline HexagonalField<ValueType> &HexagonalField<ValueType>::clear()
+inline HexagonField<ValueType> &HexagonField<ValueType>::clear()
 {
 	clear(value_type());
 	return *this;
@@ -40,19 +40,18 @@ inline HexagonalField<ValueType> &HexagonalField<ValueType>::clear()
 
 
 template<typename ValueType>
-inline HexagonalField<ValueType> &HexagonalField<ValueType>::clear(
+inline HexagonField<ValueType> &HexagonField<ValueType>::clear(
 	value_type const &val
 )
 {
-	for(value_type *b = d, *e = d+w*h; b != e; ++b)
-		*b = val;
+	std::fill(begin(), end(), val);
 	return *this;
 }
 
 
 
 template<typename ValueType>
-inline HexagonalField<ValueType> &HexagonalField<ValueType>::zeroize()
+inline HexagonField<ValueType> &HexagonField<ValueType>::zeroize()
 {
 	memset(d, 0, sizeof(value_type)*w*h);
 	return *this;
@@ -67,7 +66,7 @@ inline HexagonalField<ValueType> &HexagonalField<ValueType>::zeroize()
 // check vlaid
 	// simple
 template<typename ValueType>
-inline bool HexagonalField<ValueType>::isValid(
+inline bool HexagonField<ValueType>::isValid(
 	int x, int y
 ) const
 {
@@ -79,7 +78,7 @@ inline bool HexagonalField<ValueType>::isValid(
 
 
 template<typename ValueType> template<class Point>
-inline bool HexagonalField<ValueType>::isValid(
+inline bool HexagonField<ValueType>::isValid(
 	Point const &p
 ) const
 {
@@ -95,7 +94,7 @@ inline bool HexagonalField<ValueType>::isValid(
 
 	// for near
 template<typename ValueType>
-inline bool HexagonalField<ValueType>::isValid(
+inline bool HexagonField<ValueType>::isValid(
 	int x, int y, int dir
 ) const
 {
@@ -108,7 +107,7 @@ inline bool HexagonalField<ValueType>::isValid(
 
 template<typename ValueType>
 template<class Point>
-inline bool HexagonalField<ValueType>::isValid(
+inline bool HexagonField<ValueType>::isValid(
 	Point const &p, int dir
 ) const
 {
@@ -124,7 +123,7 @@ inline bool HexagonalField<ValueType>::isValid(
 
 // correct
 template<typename ValueType>
-inline void HexagonalField<ValueType>::correct(
+inline void HexagonField<ValueType>::correct(
 	int &x, int &y
 ) const
 {
@@ -138,7 +137,7 @@ inline void HexagonalField<ValueType>::correct(
 }
 
 template<typename ValueType> template<class Point>
-inline void HexagonalField<ValueType>::correct(
+inline void HexagonField<ValueType>::correct(
 	Point &p
 ) const
 {
@@ -151,7 +150,7 @@ inline void HexagonalField<ValueType>::correct(
 
 // get 
 template<typename ValueType>
-inline void HexagonalField<ValueType>::getxy(
+inline void HexagonField<ValueType>::getxy(
 	int i, int &x, int &y
 ) const
 {
@@ -161,7 +160,7 @@ inline void HexagonalField<ValueType>::getxy(
 }
 
 template<typename ValueType>
-inline PointI HexagonalField<ValueType>::getxy(
+inline PointI HexagonField<ValueType>::getxy(
 	int i
 ) const
 {
@@ -173,8 +172,8 @@ inline PointI HexagonalField<ValueType>::getxy(
 
 
 template<typename ValueType>
-inline void HexagonalField<ValueType>::getxy(
-	typename HexagonalField<ValueType>::value_type const *p,
+inline void HexagonField<ValueType>::getxy(
+	typename HexagonField<ValueType>::value_type const *p,
 	int &x, int &y
 ) const
 {
@@ -184,7 +183,7 @@ inline void HexagonalField<ValueType>::getxy(
 }
 
 template<typename ValueType>
-inline PointI HexagonalField<ValueType>::getxy(
+inline PointI HexagonField<ValueType>::getxy(
 	value_type const *p
 ) const
 {
@@ -196,7 +195,7 @@ inline PointI HexagonalField<ValueType>::getxy(
 
 
 template<typename ValueType>
-inline int HexagonalField<ValueType>::geti(
+inline int HexagonField<ValueType>::geti(
 	int x, int y
 ) const
 {
@@ -204,7 +203,7 @@ inline int HexagonalField<ValueType>::geti(
 }
 
 template<typename ValueType> template<class Point>
-inline int HexagonalField<ValueType>::geti(
+inline int HexagonField<ValueType>::geti(
 	Point const &p
 ) const
 {
@@ -216,7 +215,7 @@ inline int HexagonalField<ValueType>::geti(
 
 // origin
 template<typename ValueType>
-inline PointF HexagonalField<ValueType>::origin(
+inline PointF HexagonField<ValueType>::origin(
 	int x, int y, float a
 ) const
 {
@@ -224,7 +223,7 @@ inline PointF HexagonalField<ValueType>::origin(
 }
 
 template<typename ValueType>
-inline PointF HexagonalField<ValueType>::origin(
+inline PointF HexagonField<ValueType>::origin(
 	PointI const &p, float a
 ) const
 {
@@ -232,8 +231,8 @@ inline PointF HexagonalField<ValueType>::origin(
 }
 
 template<typename ValueType>
-inline PointF HexagonalField<ValueType>::origin(
-	typename HexagonalField<ValueType>::value_type const *p, float a
+inline PointF HexagonField<ValueType>::origin(
+	typename HexagonField<ValueType>::value_type const *p, float a
 ) const
 {
 	int x, y;
@@ -250,8 +249,8 @@ inline PointF HexagonalField<ValueType>::origin(
 // at
 	// simple
 template<typename ValueType>
-inline typename HexagonalField<ValueType>::value_type &
-HexagonalField<ValueType>::at(
+inline typename HexagonField<ValueType>::value_type &
+HexagonField<ValueType>::at(
 	int x, int y
 )
 {
@@ -259,8 +258,8 @@ HexagonalField<ValueType>::at(
 }
 
 template<typename ValueType>
-inline typename HexagonalField<ValueType>::value_type const &
-HexagonalField<ValueType>::at(
+inline typename HexagonField<ValueType>::value_type const &
+HexagonField<ValueType>::at(
 	int x, int y
 ) const
 {
@@ -271,8 +270,8 @@ HexagonalField<ValueType>::at(
 
 	// for point
 template<typename ValueType> template<class Point>
-inline typename HexagonalField<ValueType>::value_type const &
-HexagonalField<ValueType>::at(
+inline typename HexagonField<ValueType>::value_type const &
+HexagonField<ValueType>::at(
 	Point const &p
 ) const
 {
@@ -280,8 +279,8 @@ HexagonalField<ValueType>::at(
 }
 
 template<typename ValueType> template<class Point>
-inline typename HexagonalField<ValueType>::value_type &
-HexagonalField<ValueType>::at(
+inline typename HexagonField<ValueType>::value_type &
+HexagonField<ValueType>::at(
 	Point const &p
 )
 {
@@ -294,8 +293,8 @@ HexagonalField<ValueType>::at(
 
 	// tape at simple
 template<typename ValueType>
-inline typename HexagonalField<ValueType>::value_type &
-HexagonalField<ValueType>::att(
+inline typename HexagonField<ValueType>::value_type &
+HexagonField<ValueType>::att(
 	int x, int y
 )
 {
@@ -304,8 +303,8 @@ HexagonalField<ValueType>::att(
 }
 
 template<typename ValueType>
-inline typename HexagonalField<ValueType>::value_type const &
-HexagonalField<ValueType>::att(
+inline typename HexagonField<ValueType>::value_type const &
+HexagonField<ValueType>::att(
 	int x, int y
 ) const
 {
@@ -317,8 +316,8 @@ HexagonalField<ValueType>::att(
 
 	// tape at for point
 template<typename ValueType> template<class Point>
-inline typename HexagonalField<ValueType>::value_type const &
-HexagonalField<ValueType>::att(
+inline typename HexagonField<ValueType>::value_type const &
+HexagonField<ValueType>::att(
 	Point const &p
 ) const
 {
@@ -327,8 +326,8 @@ HexagonalField<ValueType>::att(
 
 template<typename ValueType>
 template<class Point>
-inline typename HexagonalField<ValueType>::value_type &
-HexagonalField<ValueType>::att(
+inline typename HexagonField<ValueType>::value_type &
+HexagonField<ValueType>::att(
 	Point const &p
 )
 {
@@ -341,8 +340,8 @@ HexagonalField<ValueType>::att(
 
 	// near at simple
 template<typename ValueType>
-inline typename HexagonalField<ValueType>::value_type &
-HexagonalField<ValueType>::near(
+inline typename HexagonField<ValueType>::value_type &
+HexagonField<ValueType>::near(
 	int x, int y, int dir
 )
 {
@@ -350,8 +349,8 @@ HexagonalField<ValueType>::near(
 }
 
 template<typename ValueType>
-inline typename HexagonalField<ValueType>::value_type const &
-HexagonalField<ValueType>::near(
+inline typename HexagonField<ValueType>::value_type const &
+HexagonField<ValueType>::near(
 	int x, int y, int dir
 ) const
 {
@@ -363,8 +362,8 @@ HexagonalField<ValueType>::near(
 	// near at for point
 template<typename ValueType>
 template<class Point>
-inline typename HexagonalField<ValueType>::value_type &
-HexagonalField<ValueType>::near(
+inline typename HexagonField<ValueType>::value_type &
+HexagonField<ValueType>::near(
 	Point const &p, int dir
 )
 {
@@ -373,8 +372,8 @@ HexagonalField<ValueType>::near(
 
 template<typename ValueType>
 template<class Point>
-inline typename HexagonalField<ValueType>::value_type const &
-HexagonalField<ValueType>::near(
+inline typename HexagonField<ValueType>::value_type const &
+HexagonField<ValueType>::near(
 	Point const &p, int dir
 ) const
 {
@@ -387,8 +386,8 @@ HexagonalField<ValueType>::near(
 
 	// near tape at simple
 template<typename ValueType>
-inline typename HexagonalField<ValueType>::value_type &
-HexagonalField<ValueType>::neart(
+inline typename HexagonField<ValueType>::value_type &
+HexagonField<ValueType>::neart(
 	int x, int y, int dir
 )
 {
@@ -399,8 +398,8 @@ HexagonalField<ValueType>::neart(
 }
 
 template<typename ValueType>
-inline typename HexagonalField<ValueType>::value_type const &
-HexagonalField<ValueType>::neart(
+inline typename HexagonField<ValueType>::value_type const &
+HexagonField<ValueType>::neart(
 	int x, int y, int dir
 ) const
 {
@@ -415,8 +414,8 @@ HexagonalField<ValueType>::neart(
 	// near at for point
 template<typename ValueType>
 template<class Point>
-inline typename HexagonalField<ValueType>::value_type &
-HexagonalField<ValueType>::neart(
+inline typename HexagonField<ValueType>::value_type &
+HexagonField<ValueType>::neart(
 	Point const &p, int dir
 )
 {
@@ -428,8 +427,8 @@ HexagonalField<ValueType>::neart(
 
 template<typename ValueType>
 template<class Point>
-inline typename HexagonalField<ValueType>::value_type const &
-HexagonalField<ValueType>::neart(
+inline typename HexagonField<ValueType>::value_type const &
+HexagonField<ValueType>::neart(
 	Point const &p, int dir
 ) const
 {
@@ -448,15 +447,15 @@ HexagonalField<ValueType>::neart(
 // iterators
 	// simple
 template<typename ValueType>
-inline typename HexagonalField<ValueType>::value_type *
-HexagonalField<ValueType>::begin()
+inline typename HexagonField<ValueType>::value_type *
+HexagonField<ValueType>::begin()
 {
 	return d;
 }
 
 template<typename ValueType>
-inline typename HexagonalField<ValueType>::value_type *
-HexagonalField<ValueType>::end()
+inline typename HexagonField<ValueType>::value_type *
+HexagonField<ValueType>::end()
 {
 	return d + w*h;
 }
@@ -464,15 +463,15 @@ HexagonalField<ValueType>::end()
 
 
 template<typename ValueType>
-inline typename HexagonalField<ValueType>::value_type const *
-HexagonalField<ValueType>::begin() const
+inline typename HexagonField<ValueType>::value_type const *
+HexagonField<ValueType>::begin() const
 {
 	return d;
 }
 
 template<typename ValueType>
-inline typename HexagonalField<ValueType>::value_type const *
-HexagonalField<ValueType>::end() const
+inline typename HexagonField<ValueType>::value_type const *
+HexagonField<ValueType>::end() const
 {
 	return d + w*h;
 }
@@ -481,8 +480,8 @@ HexagonalField<ValueType>::end() const
 
 	// for line
 template<typename ValueType>
-inline typename HexagonalField<ValueType>::value_type *
-HexagonalField<ValueType>::begin(
+inline typename HexagonField<ValueType>::value_type *
+HexagonField<ValueType>::begin(
 	int line
 )
 {
@@ -490,8 +489,8 @@ HexagonalField<ValueType>::begin(
 }
 
 template<typename ValueType>
-inline typename HexagonalField<ValueType>::value_type *
-HexagonalField<ValueType>::end(
+inline typename HexagonField<ValueType>::value_type *
+HexagonField<ValueType>::end(
 	int line
 )
 {
@@ -501,8 +500,8 @@ HexagonalField<ValueType>::end(
 
 
 template<typename ValueType>
-inline typename HexagonalField<ValueType>::value_type const *
-HexagonalField<ValueType>::begin(
+inline typename HexagonField<ValueType>::value_type const *
+HexagonField<ValueType>::begin(
 	int line
 ) const
 {
@@ -510,8 +509,8 @@ HexagonalField<ValueType>::begin(
 }
 
 template<typename ValueType>
-inline typename HexagonalField<ValueType>::value_type const *
-HexagonalField<ValueType>::end(
+inline typename HexagonField<ValueType>::value_type const *
+HexagonField<ValueType>::end(
 	int line
 ) const
 {
@@ -525,8 +524,8 @@ HexagonalField<ValueType>::end(
 	// class-iterator
 		// simple
 template<typename ValueType>
-inline typename HexagonalField<ValueType>::iterator_type
-HexagonalField<ValueType>::iterator(
+inline typename HexagonField<ValueType>::iterator_type
+HexagonField<ValueType>::iterator(
 	int left, int top,
 	int width, int height
 )
@@ -539,8 +538,8 @@ HexagonalField<ValueType>::iterator(
 }
 
 template<typename ValueType>
-inline typename HexagonalField<ValueType>::iterator_type const &
-HexagonalField<ValueType>::iterend() const
+inline typename HexagonField<ValueType>::iterator_type const &
+HexagonField<ValueType>::iterend() const
 {
 	return iterator_type::enditer();
 }
@@ -548,8 +547,8 @@ HexagonalField<ValueType>::iterend() const
 
 		// simple const
 template<typename ValueType>
-inline typename HexagonalField<ValueType>::const_iterator_type
-HexagonalField<ValueType>::citerator(
+inline typename HexagonField<ValueType>::const_iterator_type
+HexagonField<ValueType>::citerator(
 	int left, int top,
 	int width, int height
 ) const
@@ -562,8 +561,8 @@ HexagonalField<ValueType>::citerator(
 }
 
 template<typename ValueType>
-inline typename HexagonalField<ValueType>::const_iterator_type const &
-HexagonalField<ValueType>::citerend() const
+inline typename HexagonField<ValueType>::const_iterator_type const &
+HexagonField<ValueType>::citerend() const
 {
 	return const_iterator_type::enditer();
 }
@@ -572,8 +571,8 @@ HexagonalField<ValueType>::citerend() const
 
 		// tape
 template<typename ValueType>
-inline typename HexagonalField<ValueType>::iterator_tape_type
-HexagonalField<ValueType>::iteratort(
+inline typename HexagonField<ValueType>::iterator_tape_type
+HexagonField<ValueType>::iteratort(
 	int left, int top,
 	int width, int height
 )
@@ -586,8 +585,8 @@ HexagonalField<ValueType>::iteratort(
 }
 
 template<typename ValueType>
-inline typename HexagonalField<ValueType>::iterator_tape_type const &
-HexagonalField<ValueType>::iterendt() const
+inline typename HexagonField<ValueType>::iterator_tape_type const &
+HexagonField<ValueType>::iterendt() const
 {
 	return iterator_tape_type::enditer();
 }
@@ -595,8 +594,8 @@ HexagonalField<ValueType>::iterendt() const
 
 		// tape const
 template<typename ValueType>
-inline typename HexagonalField<ValueType>::const_iterator_tape_type
-HexagonalField<ValueType>::citeratort(
+inline typename HexagonField<ValueType>::const_iterator_tape_type
+HexagonField<ValueType>::citeratort(
 	int left, int top,
 	int width, int height
 ) const
@@ -609,8 +608,8 @@ HexagonalField<ValueType>::citeratort(
 }
 
 template<typename ValueType>
-inline typename HexagonalField<ValueType>::const_iterator_tape_type const &
-HexagonalField<ValueType>::citerendt() const
+inline typename HexagonField<ValueType>::const_iterator_tape_type const &
+HexagonField<ValueType>::citerendt() const
 {
 	return const_iterator_tape_type::enditerc();
 }
@@ -622,7 +621,7 @@ HexagonalField<ValueType>::citerendt() const
 // print
 template<typename ValueType>
 template<class Ostream>
-Ostream &HexagonalField<ValueType>::print( Ostream &os ) const
+Ostream &HexagonField<ValueType>::print( Ostream &os ) const
 {
 	for(int y = 0; y < h; ++y)
 	{
@@ -648,7 +647,7 @@ Ostream &HexagonalField<ValueType>::print( Ostream &os ) const
 template<typename ValueType>
 template<class IsConst, class TapeMode>
 template<class C, class TM>
-HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::Iterator(
+HexagonField<ValueType>::Iterator<IsConst, TapeMode>::Iterator(
 	Iterator<C, TM> const &tocp
 ):
 	left(tocp.left), top(tocp.top),
@@ -660,8 +659,8 @@ HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::Iterator(
 template<typename ValueType>
 template<class IsConst, class TapeMode>
 template<class C, class TM>
-HexagonalField<ValueType>::Iterator<IsConst, TapeMode> &
-HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::operator=(
+HexagonField<ValueType>::Iterator<IsConst, TapeMode> &
+HexagonField<ValueType>::Iterator<IsConst, TapeMode>::operator=(
 	Iterator<C, TM> const &rhs
 )
 {
@@ -685,8 +684,8 @@ HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::operator=(
 // move
 template<typename ValueType>
 template<class IsConst, class TapeMode>
-HexagonalField<ValueType>::Iterator<IsConst, TapeMode> &
-HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::operator++()
+HexagonField<ValueType>::Iterator<IsConst, TapeMode> &
+HexagonField<ValueType>::Iterator<IsConst, TapeMode>::operator++()
 {
 	plusplus(TapeMode());
 	return *this;
@@ -694,8 +693,8 @@ HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::operator++()
 
 template<typename ValueType>
 template<class IsConst, class TapeMode>
-HexagonalField<ValueType>::Iterator<IsConst, TapeMode>
-HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::operator++(int)
+HexagonField<ValueType>::Iterator<IsConst, TapeMode>
+HexagonField<ValueType>::Iterator<IsConst, TapeMode>::operator++(int)
 {
 	auto athis = *this;
 	operator++();
@@ -706,8 +705,8 @@ HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::operator++(int)
 
 template<typename ValueType>
 template<class IsConst, class TapeMode>
-HexagonalField<ValueType>::Iterator<IsConst, TapeMode> &
-HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::operator--()
+HexagonField<ValueType>::Iterator<IsConst, TapeMode> &
+HexagonField<ValueType>::Iterator<IsConst, TapeMode>::operator--()
 {
 	minusminus(TapeMode());
 	return *this;
@@ -715,8 +714,8 @@ HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::operator--()
 
 template<typename ValueType>
 template<class IsConst, class TapeMode>
-HexagonalField<ValueType>::Iterator<IsConst, TapeMode>
-HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::operator--(int)
+HexagonField<ValueType>::Iterator<IsConst, TapeMode>
+HexagonField<ValueType>::Iterator<IsConst, TapeMode>::operator--(int)
 {
 	auto cp = *this;
 	operator--();
@@ -730,16 +729,16 @@ HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::operator--(int)
 // at
 template<typename ValueType>
 template<class IsConst, class TapeMode>
-typename HexagonalField<ValueType>::template Iterator<IsConst, TapeMode>::value_type &
-HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::operator*() const
+typename HexagonField<ValueType>::template Iterator<IsConst, TapeMode>::value_type &
+HexagonField<ValueType>::Iterator<IsConst, TapeMode>::operator*() const
 {
 	return *d;
 }
 
 template<typename ValueType>
 template<class IsConst, class TapeMode>
-typename HexagonalField<ValueType>::template Iterator<IsConst, TapeMode>::value_type &
-HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::operator->() const
+typename HexagonField<ValueType>::template Iterator<IsConst, TapeMode>::value_type &
+HexagonField<ValueType>::Iterator<IsConst, TapeMode>::operator->() const
 {
 	return *d;
 }
@@ -748,15 +747,15 @@ HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::operator->() const
 
 template<typename ValueType>
 template<class IsConst, class TapeMode>
-inline typename HexagonalField<ValueType>::template Iterator<IsConst, TapeMode>::value_type *
-HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::base() const
+inline typename HexagonField<ValueType>::template Iterator<IsConst, TapeMode>::value_type *
+HexagonField<ValueType>::Iterator<IsConst, TapeMode>::base() const
 {
 	return d;
 }
 
 template<typename ValueType>
 template<class IsConst, class TapeMode>
-inline PointI HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::point() const
+inline PointI HexagonField<ValueType>::Iterator<IsConst, TapeMode>::point() const
 {
 	return { x, y };
 }
@@ -770,7 +769,7 @@ inline PointI HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::point() co
 template<typename ValueType>
 template<class IsConst, class TapeMode>
 template<class C, class TM>
-bool HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::operator==(
+bool HexagonField<ValueType>::Iterator<IsConst, TapeMode>::operator==(
 	 Iterator<C, TM> const &rhs
 ) const
 {
@@ -786,7 +785,7 @@ bool HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::operator==(
 template<typename ValueType>
 template<class IsConst, class TapeMode>
 template<class C, class TM>
-inline bool HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::operator!=(
+inline bool HexagonField<ValueType>::Iterator<IsConst, TapeMode>::operator!=(
 	Iterator<C, TM> const &rhs
 ) const
 {
@@ -798,15 +797,15 @@ inline bool HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::operator!=(
 	// end
 template<typename ValueType>
 template<class IsConst, class TapeMode>
-inline bool HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::isend() const
+inline bool HexagonField<ValueType>::Iterator<IsConst, TapeMode>::isend() const
 {
 	return y == top+height;
 }
 
 template<typename ValueType>
 template<class IsConst, class TapeMode>
-inline HexagonalField<ValueType>::Iterator<IsConst, TapeMode>
-HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::iterend() const
+inline HexagonField<ValueType>::Iterator<IsConst, TapeMode>
+HexagonField<ValueType>::Iterator<IsConst, TapeMode>::iterend() const
 {
 	auto it = *this;
 	it.y = top+height;
@@ -816,8 +815,8 @@ HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::iterend() const
 
 template<typename ValueType>
 template<class IsConst, class TapeMode>
-inline HexagonalField<ValueType>::Iterator<IsConst, TapeMode> const &
-HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::iterendc() const
+inline HexagonField<ValueType>::Iterator<IsConst, TapeMode> const &
+HexagonField<ValueType>::Iterator<IsConst, TapeMode>::iterendc() const
 {
 	static Iterator const singleton = create_iterend();
 	return singleton;
@@ -833,8 +832,8 @@ HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::iterendc() const
 	// static
 template<typename ValueType>
 template<class IsConst, class TapeMode>
-HexagonalField<ValueType>::Iterator<IsConst, TapeMode>
-HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::create_iterend()
+HexagonField<ValueType>::Iterator<IsConst, TapeMode>
+HexagonField<ValueType>::Iterator<IsConst, TapeMode>::create_iterend()
 {
 	Iterator iter;
 	iter.d = nullptr;
@@ -848,11 +847,11 @@ HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::create_iterend()
 	// constructor
 template<typename ValueType>
 template<class IsConst, class TapeMode>
-HexagonalField<ValueType>::template Iterator<IsConst, TapeMode>::Iterator(): d(nullptr) {}
+HexagonField<ValueType>::template Iterator<IsConst, TapeMode>::Iterator(): d(nullptr) {}
 
 template<typename ValueType>
 template<class IsConst, class TapeMode>
-HexagonalField<ValueType>::template Iterator<IsConst, TapeMode>::Iterator(
+HexagonField<ValueType>::template Iterator<IsConst, TapeMode>::Iterator(
 	field_type &field,
 	int left, int top,
 	int width, int height
@@ -869,7 +868,7 @@ HexagonalField<ValueType>::template Iterator<IsConst, TapeMode>::Iterator(
 	// move
 template<typename ValueType>
 template<class IsConst, class TapeMode>
-inline void HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::plusplus(Simple)
+inline void HexagonField<ValueType>::Iterator<IsConst, TapeMode>::plusplus(Simple)
 {
 	x += 2;
 	if( x/2 == left/2+width )
@@ -886,7 +885,7 @@ inline void HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::plusplus(Sim
 
 template<typename ValueType>
 template<class IsConst, class TapeMode>
-inline void HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::plusplus(TapeAt)
+inline void HexagonField<ValueType>::Iterator<IsConst, TapeMode>::plusplus(TapeAt)
 {
 	x += 2;
 	if( (x - (y%2 ? 1 : 0))/2 == (left - (top%2 ? 1 : 0))/2 + width )
@@ -907,7 +906,7 @@ inline void HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::plusplus(Tap
 
 template<typename ValueType>
 template<class IsConst, class TapeMode>
-inline void HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::minusminus(Simple)
+inline void HexagonField<ValueType>::Iterator<IsConst, TapeMode>::minusminus(Simple)
 {
 	x -= 2;
 	if( (x - y%2)/2 == left/2-1 )
@@ -922,7 +921,7 @@ inline void HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::minusminus(S
 
 template<typename ValueType>
 template<class IsConst, class TapeMode>
-inline void HexagonalField<ValueType>::Iterator<IsConst, TapeMode>::minusminus(TapeAt)
+inline void HexagonField<ValueType>::Iterator<IsConst, TapeMode>::minusminus(TapeAt)
 {
 	x -= 2;
 	if( (x - (y%2 ? 1 : 0))/2 == (left - (top%2 ? 1 : 0))/2 - 1 )

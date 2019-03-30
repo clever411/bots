@@ -4,7 +4,7 @@
 #include <list>
 #include <random>
 
-#include <clever/HexagonalField.hpp>
+#include <clever/HexagonField.hpp>
 
 
 
@@ -95,9 +95,10 @@ struct Cell
 {
 	static constexpr double const
 		DEFAULT_GROUND_ENERGY = 50.0,
-		SMOOTH = 0.33;
+		SMOOTH = 0.5;
 
 	double energy;
+	double temp;
 	Plant *plant;
 	Bot *bot;
 	Body *body;
@@ -110,7 +111,7 @@ struct Cell
 
 
 // core
-struct BotField: public clever::HexagonalField<Cell>
+struct BotField: public clever::HexagonField<Cell>
 {
 	// members
 	std::list<Cell*> bots = {};
@@ -150,7 +151,9 @@ struct BotField: public clever::HexagonalField<Cell>
 
 
 private:
-	clever::HexagonalField<double> smoothf_ = {0, 0, nullptr};
+	void set_cells_();
+
+	clever::HexagonField<double> smoothf_ = {0, 0, nullptr};
 
 
 

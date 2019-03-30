@@ -7,7 +7,6 @@
 
 #include "declare.hpp"
 #include "init.hpp"
-
 #include "Stat.hpp"
 
 
@@ -165,12 +164,11 @@ int main( int argc, char *argv[] )
 			isbkey || isikey || isleft || Mouse::isButtonPressed( Mouse::Button::Right )
 		)
 		{
-			PointI point(
+			PointI point = 
 				adapter.cursorOn(
-					Vector2f(Mouse::getPosition(window)) -
-					adapter.getPosition()
-				)
-			);
+					makep<int>(Mouse::getPosition(window)) -
+					makep<int>(adapter.getPosition())
+				);
 			if(field.isValid(point))
 			{
 				auto &cell = field.at(point);

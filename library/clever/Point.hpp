@@ -2,9 +2,13 @@
 #define CLEVER_POINT_HPP
 
 #include <cmath>
+#include <type_traits>
 #include <utility>
 
 #include <clever/IostreamFunction.hpp>
+#include <clever/Type.hpp>
+
+
 
 
 
@@ -12,6 +16,8 @@
 
 namespace clever
 {
+
+
 
 
 
@@ -34,16 +40,7 @@ struct Point
 	
 	
 	
-	// create
-	Point() {}
-	Point(value_type x, value_type y): x(x), y(y) {}
-	
-	template<typename U>
-	Point(std::pair<U, U> const &p): x(p.first), y(p.second) {}
-
-	template<class P>
-	Point(P const &p): x(p.x), y(p.y) {}
-
+	// methods
 	template<class P>
 	Point &operator=(P const &p)
 	{
@@ -53,35 +50,65 @@ struct Point
 	}
 	
 	
-	
-	
-	
 	// conversion
 	template<class P>
-	inline operator P() const;
+	inline operator P() const
+	{
+		P p;
+		p.x = x;
+		p.y = y;
+		return p;
+	}
 
 	template<typename U>
-	inline operator std::pair<U, U>() const;
+	inline operator std::pair<U, U>() const
+	{
+		return std::pair<U, U>(x, y);
+	}
 
 	template<class P>
-	inline P to() const;
+	inline P to() const
+	{
+		P p;
+		p.x = x;
+		p.y = y;
+		return p;
+	}
 
 	template<typename U = value_type>
-	inline std::pair<U, U> topair() const;
+	inline std::pair<U, U> topair() const
+	{
+		return std::pair<U, U>{ x, y };
+	}
 
 
 
 	// geometry
-	inline double hypot() const;
+	inline double hypot() const
+	{
+		return std::hypot(x, y);
+	}
 
 	template<typename P>
-	inline double dis(P const &p) const;
+	inline double dis(P const &p) const
+	{
+		return std::hypot(p.x-x, p.y-y);
+	}
 
 
 
 	// print
 	template<class Ostream>
-	Ostream &print( Ostream &os ) const;
+	Ostream &print( Ostream &os ) const
+	{
+		os << "(";
+		clever::print(os, x) << ", ";
+		clever::print(os, y) << ")";
+		return os;
+	}
+
+
+
 };
 
 
@@ -90,21 +117,267 @@ struct Point
 
 
 
+// operators
+	// Point and Number
+template<typename T, typename U>
+inline Point<decltype(T()+U())> operator+(
+	Point<T> const &lhs,
+	U rhs
+)
+{
+	return {lhs.x+rhs, lhs.y+rhs};
+}
+
+
+template<typename T, typename U>
+inline Point<decltype(T()-U())> operator-(
+	Point<T> const &lhs,
+	U rhs
+)
+{
+	return {lhs.x-rhs, lhs.y-rhs};
+}
+
+
+template<typename T, typename U>
+inline Point<decltype(T()*U())> operator*(
+	Point<T> const &lhs,
+	U rhs
+)
+{
+	return {lhs.x*rhs, lhs.y*rhs};
+}
+
+
+template<typename T, typename U>
+inline Point<decltype(T()/U())> operator/(
+	Point<T> const &lhs,
+	U rhs
+)
+{
+	return { lhs.x/rhs, lhs.y/rhs };
+}
 
 
 
-// in implement operators:
-//   +, -, *, /
-//   +=, -=, *=, /=
-// functions:
-//   makep(C<T>) -> Point<T>
-//   operator<<(Ostream, Point<T>)
-#include "Point_implement.hpp"
-	
-	
-	
-	
-	
+
+
+	// Point and Point
+template<typename T, typename U>
+inline Point<decltype(T()+U())> operator+(
+	Point<T> const &lhs,
+	Point<U> const &rhs
+)
+{
+	return {lhs.x+rhs.x, lhs.y+rhs.y};
+}
+
+
+template<typename T, typename U>
+inline Point<decltype(T()-U())> operator-(
+	Point<T> const &lhs,
+	Point<U> const &rhs
+)
+{
+	return {lhs.x-rhs.x, lhs.y-rhs.y};
+}
+
+
+template<typename T, typename U>
+inline Point<decltype(T()*U())> operator*(
+	Point<T> const &lhs,
+	Point<U> const &rhs
+)
+{
+	return {lhs.x*rhs.x, lhs.y*rhs.y};
+}
+
+
+template<typename T, typename U>
+inline Point<decltype(T()/U())> operator/(
+	Point<T> const &lhs,
+	Point<U> const &rhs
+)
+{
+	return {lhs.x/rhs.x, lhs.y/rhs.y};
+}
+
+
+
+
+
+	// mod Point and Number
+template<typename T, typename U>
+inline Point<T> &operator+=(
+	Point<T> &lhs,
+	U rhs
+)
+{
+	lhs.x += rhs;
+	lhs.y += rhs;
+	return lhs;
+}
+
+
+template<typename T, typename U>
+inline Point<T> &operator-=(
+	Point<T> &lhs,
+	U rhs
+)
+{
+	lhs.x -= rhs;
+	lhs.y -= rhs;
+	return lhs;
+}
+
+
+template<typename T, typename U>
+inline Point<T> &operator*=(
+	Point<T> &lhs,
+	U rhs
+)
+{
+	lhs.x *= rhs;
+	lhs.y *= rhs;
+	return lhs;
+}
+
+
+template<typename T, typename U>
+inline Point<T> &operator/=(
+	Point<T> &lhs,
+	U rhs
+)
+{
+	lhs.x /= rhs;
+	lhs.y /= rhs;
+	return lhs;
+}
+
+
+
+
+
+	// mod Point and Point
+template<typename T, typename U>
+inline Point<T> &operator+=(
+	Point<T> &lhs,
+	Point<U> const &rhs
+)
+{
+	lhs.x += rhs.x;
+	lhs.y += rhs.y;
+	return lhs;
+}
+
+
+template<typename T, typename U>
+inline Point<T> &operator-=(
+	Point<T> &lhs,
+	Point<U> const &rhs
+)
+{
+	lhs.x -= rhs.x;
+	lhs.y -= rhs.y;
+	return lhs;
+}
+
+
+template<typename T, typename U>
+inline Point<T> &operator*=(
+	Point<T> &lhs,
+	Point<U> const &rhs
+)
+{
+	lhs.x *= rhs.x;
+	lhs.y *= rhs.y;
+	return lhs;
+}
+
+
+template<typename T, typename U>
+inline Point<T> &operator/=(
+	Point<T> &lhs,
+	Point<U> const &rhs
+)
+{
+	lhs.x /= rhs.x;
+	lhs.y /= rhs.y;
+	return lhs;
+}
+
+
+
+
+
+
+
+// print
+template<class Ostream, typename T>
+inline Ostream &operator<<(
+	Ostream &os,
+	Point<T> const &toprint 
+)
+{
+	 return toprint.print(os);
+}
+
+
+
+
+
+
+
+// make 
+template<typename T = void, class C>
+inline auto makep(C const &from)
+{
+	Point< typename IF<
+		std::is_same<T, void>::value,
+		decltype(C::x), T
+	>::value_type > p;
+
+	p.x = from.x;
+	p.y = from.y;
+
+	return p;
+}
+
+template<typename T = void, typename U>
+inline auto makep(U x, U y)
+{
+	Point< typename IF<
+		std::is_same<T, void>::value,
+		U, T
+	>::value_type > p;
+
+	p.x = x;
+	p.y = y;
+
+	return p;
+}
+
+template<typename T = void, typename U>
+inline auto makep(std::pair<U, U> const &pair)
+{
+	Point< typename IF<
+		std::is_same<T, void>::value,
+		U, T
+	>::value_type > p;
+
+	p.x = pair.first;
+	p.y = pair.second;
+
+	return p;
+}
+
+
+
+
+
+
+
+// typedefs
 typedef Point<char> PointC;
 typedef Point<int> PointI;
 typedef Point<unsigned> PointU;
@@ -115,7 +388,11 @@ typedef Point<double> PointD;
 
 
 
+
+
 }
+
+
 
 
 

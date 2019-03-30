@@ -27,10 +27,7 @@ CellPrinter::CellPrinter(Cell const &cell):
 CellPrinter &CellPrinter::setSideSize(float a)
 {
 	setRadius(a);
-	setOrigin(
-		getLocalBounds().width / 2.0f,
-		getLocalBounds().height / 2.0f
-	);
+	setOrigin(a, a);
 	return *this;
 }
 

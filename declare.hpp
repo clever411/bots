@@ -6,7 +6,7 @@
 #include <SFML/Graphics.hpp>
 
 #include <clever/ChangingObject.hpp>
-#include <clever/SFML/HexagonalFieldAdapter.hpp>
+#include <clever/SFML/FieldAdapter.hpp>
 
 #include "bot_field.hpp"
 #include "CellPrinter.hpp"
@@ -24,7 +24,7 @@
 // types
 typedef CellPrinter printer_type;
 typedef BotField field_type;
-typedef clever::HexagonalFieldAdapter<Cell, printer_type> adapter_type;
+typedef clever::HexagonFieldAdapter<field_type, printer_type> adapter_type;
 typedef clever::ChangingObject<std::string> statstring_type;
 
 

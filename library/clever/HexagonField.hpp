@@ -1,5 +1,5 @@
-#ifndef CLEVER_HEXAGONAL_FIELD_HPP
-#define CLEVER_HEXAGONAL_FIELD_HPP
+#ifndef CLEVER_HEXAGON_FIELD_HPP
+#define CLEVER_HEXAGON_FIELD_HPP
 
 #include <cstring>
 #include <iterator>
@@ -22,7 +22,7 @@ namespace clever
 
 
 template<typename T>
-struct HexagonalField
+struct HexagonField
 {
 	// types
 	typedef T value_type;
@@ -40,8 +40,8 @@ private:
 		std::bidirectional_iterator_tag,
 		typename IF<
 			std::is_same<IsConst, Const>::value,
-			HexagonalField::value_type const,
-			HexagonalField::value_type
+			HexagonField::value_type const,
+			HexagonField::value_type
 		>::value_type
 	>
 	{
@@ -51,7 +51,7 @@ private:
 
 		typedef typename IF<
 			std::is_same<IsConst, Const>::value,
-			HexagonalField const, HexagonalField
+			HexagonField const, HexagonField
 		>::value_type field_type;
 
 
@@ -105,7 +105,7 @@ private:
 
 
 	private:
-		friend class HexagonalField;
+		friend class HexagonField;
 
 		static Iterator create_iterend();
 
@@ -175,16 +175,16 @@ public:
 	
 	
 	// init, free
-	inline HexagonalField &init();
-	inline HexagonalField &init(int width, int height);
-	inline HexagonalField &free();
+	inline HexagonField &init();
+	inline HexagonField &init(int width, int height);
+	inline HexagonField &free();
 
 
 
 	// clear, zeroize
-	inline HexagonalField &clear();
-	inline HexagonalField &clear(value_type const &val);
-	inline HexagonalField &zeroize();
+	inline HexagonField &clear();
+	inline HexagonField &clear(value_type const &val);
+	inline HexagonField &zeroize();
 
 
 
@@ -375,7 +375,7 @@ public:
 
 
 
-#include "HexagonalField_implement.hpp"
+#include "HexagonField_implement.hpp"
 
 
 
@@ -388,7 +388,7 @@ public:
 
 
 template<class Ostream, typename ValueType>
-Ostream &operator<<(Ostream &os, clever::HexagonalField<ValueType> const &toprint)
+Ostream &operator<<(Ostream &os, clever::HexagonField<ValueType> const &toprint)
 {
 	toprint.print(os);
 	return os;

@@ -1,17 +1,18 @@
-// implement of class FieldAdapter
+#include <algorithm>
+#include <cmath>
 
 
 
 
 
-// constructor desturctor
-template<typename ValueType, class PrinterType>
-FieldAdapter<ValueType, PrinterType>::FieldAdapter(
+// create
+template<class FieldType, class Printer, class FieldTag>
+FieldAdapter<FieldType, Printer, FieldTag>::FieldAdapter(
 	fieldptr_type field,
-	sf::Vector2f const &size
-): field_(field)
+	PointF size
+): field_(field), size_(size)
 {
-	setSize(size);
+	adjust_();
 	return;
 }
 
@@ -19,105 +20,48 @@ FieldAdapter<ValueType, PrinterType>::FieldAdapter(
 
 
 
-// using methods
-template<typename ValueType, class PrinterType>
-FieldAdapter<ValueType, PrinterType> &
-FieldAdapter<ValueType, PrinterType>::update()
+// core
+template<class FieldType, class Printer, class FieldTag>
+FieldAdapter<FieldType, Printer, FieldTag> &
+FieldAdapter<FieldType, Printer, FieldTag>::update()
 {
-	if(ischanged_)
-		adjust_();
 	return *this;
 }
 
+template<class FieldType, class Printer, class FieldTag>
+PointI FieldAdapter<FieldType, Printer, FieldTag>::cursorOn(PointF p) const
+{
+	return imp::cursorOn(p, *this);
+}
 
-template<typename ValueType, class PrinterType>
-void FieldAdapter<ValueType, PrinterType>::draw(
-	sf::RenderTarget &target, sf::RenderStates states
+template<class FieldType, class Printer, class FieldTag>
+inline PointI FieldAdapter<FieldType, Printer, FieldTag>::cursorOn(
+	float x, float y
 ) const
 {
-	printer_.setSize({_cellsize, _cellsize});
-	printer_.setPosition(
-		{boundsoffset_.x+bordersize,
-		boundsoffset_.y+bordersize}
-	);
-	states.transform *= sf::Transformable::getTransform();
+	return imp::cursorOn({x, y}, *this);
+}
 
-	target.draw(_background, states);
-	for(unsigned int y = 0; y < field_->h; ++y) {
-		for(unsigned int x = 0; x < field_->w; ++x) {
-			printer_.set(field_->at(x, y));
-			target.draw(printer_, states);
-			printer_.move(_cellsize+2*bordersize, 0.0);
-		}
-		printer_.move(
-			-int(field_->w)*(_cellsize+2*bordersize),
-			_cellsize+2*bordersize
+template<class FieldType, class Printer, class FieldTag>
+void FieldAdapter<FieldType, Printer, FieldTag>::draw(
+	sf::RenderTarget &target,
+	sf::RenderStates states
+) const
+{
+	states.transform *= getTransform();
+	if(drawgrid_)
+		target.draw(sprite_, states);
+	for(auto b = field_->begin(), e = field_->end(); b != e; ++b)
+	{
+		printer_->setPosition(
+			field_->origin(b, side_) +
+			imp::off(side_)
 		);
+		printer_->set(*b);
+		target.draw(*printer_, states);
 	}
 
 	return;
-}
-
-
-template<typename ValueType, class PrinterType>
-std::pair<int, int>
-FieldAdapter<ValueType, PrinterType>::cursorOn(
-	sf::Vector2f const &point) const
-{
-	int x = point.x/(_cellsize+2*bordersize);
-	int y = point.y/(_cellsize+2*bordersize);
-
-	if(x < 0 || x >= field_->w || y < 0 || y >= field_->h)
-		return std::pair<unsigned int, unsigned int>(-1, -1);
-	else 
-		return std::pair<unsigned int, unsigned int>(
-			(unsigned int)(x), (unsigned int)(y)
-		);
-}
-
-
-
-
-
-
-
-// size
-template<typename ValueType, class PrinterType>
-bool FieldAdapter<ValueType, PrinterType>::isResized() const
-{
-	return _isresized;
-}
-
-
-template<typename ValueType, class PrinterType>
-FieldAdapter<ValueType, PrinterType> &
-FieldAdapter<ValueType, PrinterType>::resetResized()
-{
-	_isresized = false;
-	return *this;
-}
-
-
-
-template<typename ValueType, class PrinterType>
-sf::Vector2f FieldAdapter<ValueType, PrinterType>::getSize() const
-{
-	return size_;
-}
-
-
-template<typename ValueType, class PrinterType>
-FieldAdapter<ValueType, PrinterType> &
-FieldAdapter<ValueType, PrinterType>::setSize(
-	sf::Vector2f const &newsize
-)
-{
-	if(size_.x != newsize.x || size_.y != newsize.y) {
-		size_ = newsize;
-		ischanged_ = true;
-		_isresized = true;
-	}
-	return *this;
 }
 
 
@@ -125,23 +69,21 @@ FieldAdapter<ValueType, PrinterType>::setSize(
 
 
 // field
-template<typename ValueType, class PrinterType>
-typename FieldAdapter<ValueType, PrinterType>::fieldptr_type
-FieldAdapter<ValueType, PrinterType>::getField() const
-{
-	return field_;
-}
-
-
-template<typename ValueType, class PrinterType>
-FieldAdapter<ValueType, PrinterType> &
-FieldAdapter<ValueType, PrinterType>::setField(
+template<class FieldType, class Printer, class FieldTag>
+FieldAdapter<FieldType, Printer, FieldTag> &
+FieldAdapter<FieldType, Printer, FieldTag>::setField(
 	fieldptr_type newfield
 )
 {
 	field_ = newfield;
-	ischanged_ = true;
 	return *this;
+}
+
+template<class FieldType, class Printer, class FieldTag>
+typename FieldAdapter<FieldType, Printer, FieldTag>::fieldptr_type 
+FieldAdapter<FieldType, Printer, FieldTag>::getField() const
+{
+	return field_;
 }
 
 
@@ -149,105 +91,44 @@ FieldAdapter<ValueType, PrinterType>::setField(
 
 
 // printer
-template<typename ValueType, class PrinterType>
-typename FieldAdapter<ValueType, PrinterType>::printer_type const &
-FieldAdapter<ValueType, PrinterType>::getPrinter() const
+template<class FieldType, class Printer, class FieldTag>
+FieldAdapter<FieldType, Printer, FieldTag> &
+FieldAdapter<FieldType, Printer, FieldTag>::setPrinter(
+	printerptr_type newprinter
+)
+{
+	printer_ = newprinter;
+	adjust_();
+	return *this;
+}
+
+template<class FieldType, class Printer, class FieldTag>
+typename FieldAdapter<FieldType, Printer, FieldTag>::printerptr_type
+FieldAdapter<FieldType, Printer, FieldTag>::getPrinter() const
 {
 	return printer_;
 }
 
 
-template<typename ValueType, class PrinterType>
-FieldAdapter<ValueType, PrinterType> &
-FieldAdapter<ValueType, PrinterType>::setPrinter(
-	printer_type const &newprinter
+
+
+
+// size
+template<class FieldType, class Printer, class FieldTag>
+FieldAdapter<FieldType, Printer, FieldTag> &
+FieldAdapter<FieldType, Printer, FieldTag>::setSize(
+	PointF newsize
 )
 {
-	printer_ = newprinter;
-}
-
-
-
-
-
-// border
-template<typename ValueType, class PrinterType>
-float FieldAdapter<ValueType, PrinterType>::getBordertocell() const
-{
-	return _bordertocell;
-}
-
-
-template<typename ValueType, class PrinterType>
-FieldAdapter<ValueType, PrinterType> &
-FieldAdapter<ValueType, PrinterType>::setBordertocell(
-	float newbordertocell
-)
-{
-	_bordertocell = newbordertocell;
-	ischanged_ = true;
+	size_ = newsize;
+	adjust_();
 	return *this;
 }
 
-
-
-
-
-// bounds
-	// enable
-template<typename ValueType, class PrinterType>
-bool FieldAdapter<ValueType, PrinterType>::isDrawBoundsEnable() const
+template<class FieldType, class Printer, class FieldTag>
+PointF FieldAdapter<FieldType, Printer, FieldTag>::getSize() const
 {
-	return _drawbounds;
-}
-
-
-template<typename ValueType, class PrinterType>
-FieldAdapter<ValueType, PrinterType> &
-FieldAdapter<ValueType, PrinterType>::setDrawBoundsEnable(bool enable)
-{
-	_drawbounds = enable;
-	ischanged_ = true;
-	return *this;
-}
-
-
-	// width
-template<typename ValueType, class PrinterType>
-float FieldAdapter<ValueType, PrinterType>::getBoundsWidth() const
-{
-	return _boundswidth;
-}
-
-
-template<typename ValueType, class PrinterType>
-FieldAdapter<ValueType, PrinterType> &
-FieldAdapter<ValueType, PrinterType>::setBoundsWidth(
-	float newboundswidth
-)
-{
-	_boundswidth = newboundswidth;
-	ischanged_ = true;
-	return *this;
-}
-
-
-	// color
-template<typename ValueType, class PrinterType>
-sf::Color const &
-FieldAdapter<ValueType, PrinterType>::getBoundsColor() const
-{
-	return _boundscolor;
-}
-template<typename ValueType, class PrinterType>
-FieldAdapter<ValueType, PrinterType> &
-FieldAdapter<ValueType, PrinterType>::setBoundsColor(
-	sf::Color const &newboundscolor
-)
-{
-	_boundscolor = newboundscolor;
-	ischanged_ = true;
-	return *this;
+	return size_;
 }
 
 
@@ -255,61 +136,91 @@ FieldAdapter<ValueType, PrinterType>::setBoundsColor(
 
 
 // grid
-	// enable
-template<typename ValueType, class PrinterType>
-bool FieldAdapter<ValueType, PrinterType>::isDrawGridEnable() const
+template<class FieldType, class Printer, class FieldTag>
+FieldAdapter<FieldType, Printer, FieldTag> &
+FieldAdapter<FieldType, Printer, FieldTag>::setDrawGridEnable(bool enable)
 {
-	return _drawgrid;
-}
-
-
-template<typename ValueType, class PrinterType>
-FieldAdapter<ValueType, PrinterType> &
-FieldAdapter<ValueType, PrinterType>::setDrawGridEnable(bool enable)
-{
-	_drawgrid = enable;
-	ischanged_ = true;
+	drawgrid_ = enable;
+	adjust_();
 	return *this;
 }
 
-
-	// width
-template<typename ValueType, class PrinterType>
-float FieldAdapter<ValueType, PrinterType>::getGridWidth() const
+template<class FieldType, class Printer, class FieldTag>
+bool 
+FieldAdapter<FieldType, Printer, FieldTag>::getDrawGridEnable() const
 {
-	return _gridwidth;
+	return drawgrid_;
 }
 
 
-template<typename ValueType, class PrinterType>
-FieldAdapter<ValueType, PrinterType> &
-FieldAdapter<ValueType, PrinterType>::setGridWidth(float newgridwidth)
+
+template<class FieldType, class Printer, class FieldTag>
+FieldAdapter<FieldType, Printer, FieldTag> &
+FieldAdapter<FieldType, Printer, FieldTag>::setGridThickness(float newthick)
 {
-	_gridwidth = newgridwidth;
-	ischanged_ = true;
+	gridthick_ = newthick;
+	adjust_();
 	return *this;
 }
 
-
-	// color
-template<typename ValueType, class PrinterType>
-sf::Color const &FieldAdapter<ValueType, PrinterType>::getGridColor() const
+template<class FieldType, class Printer, class FieldTag>
+float 
+FieldAdapter<FieldType, Printer, FieldTag>::getGridThickness() const
 {
-	return _gridcolor;
+	return gridthick_;
 }
 
 
-template<typename ValueType, class PrinterType>
-FieldAdapter<ValueType, PrinterType> &
-FieldAdapter<ValueType, PrinterType>::setGridColor(
-	sf::Color const &newgridcolor
+
+template<class FieldType, class Printer, class FieldTag>
+FieldAdapter<FieldType, Printer, FieldTag> &
+FieldAdapter<FieldType, Printer, FieldTag>::setGridColor(
+	sf::Color const &newcolor
 )
 {
-	_gridcolor = newgridcolor;
-	ischanged_ = true;
+	gridcolor_ = newcolor;
+	adjust_();
 	return *this;
 }
-	
+
+template<class FieldType, class Printer, class FieldTag>
+sf::Color const &
+FieldAdapter<FieldType, Printer, FieldTag>::getGridColor() const
+{
+	return gridcolor_;
+}
+
+
+
+
+
+
+
+// private
+template<class FieldType, class Printer, class FieldTag>
+void FieldAdapter<FieldType, Printer, FieldTag>::adjust_()
+{
+	if(!field_)
+		return;
+	imp::adjust_size(*this);
+	printer_->setSideSize(
+		side_ - (drawgrid_ ? gridthick_/2.0f : 0.0f)
+	);
+
+	if(!drawgrid_)
+		return;
+
+
+	// grid
+	rtexture_.create(size_.x, size_.y);
+	imp::draw_grid(*this);
+	rtexture_.display();
+	sprite_.setTexture( rtexture_.getTexture(), true );
+
+
+	return;
+}
+
 
 
 
@@ -317,127 +228,154 @@ FieldAdapter<ValueType, PrinterType>::setGridColor(
 
 
 // implement
-template<typename ValueType, class PrinterType>
-void FieldAdapter<ValueType, PrinterType>::adjust_()
+	// square
+template<class FieldType, class Printer, class FieldTag>
+inline PointI
+FieldAdapter<FieldType, Printer, FieldTag>::SquareImplement::cursorOn(
+	PointF p, FieldAdapter const &f
+)
 {
-	auto rsize = size_;
-	if(_drawbounds) {
-		rsize.x -= 2*_boundswidth;
-		rsize.y -= 2*_boundswidth;
-	}
+	return { int(p.x / f.side_), int(p.y / f.side_) };
+}
 
-	// cell
-	float fullcellsize;
-	float cwidth = float(rsize.x)/field_->w;
-	float cheight = float(rsize.y)/field_->h;
+template<class FieldType, class Printer, class FieldTag>
+inline PointF
+FieldAdapter<FieldType, Printer, FieldTag>::SquareImplement::off(float side)
+{
+	return OFF*side;
+}
 
-	if(cwidth < cheight)
+template<class FieldType, class Printer, class FieldTag>
+inline void FieldAdapter<FieldType, Printer, FieldTag>::SquareImplement::adjust_size(
+	FieldAdapter &f
+)
+{
+	f.side_ = std::min(
+		f.size_.x / f.field_->w,
+		f.size_.y / f.field_->h
+	);
+	f.size_ = {
+		f.field_->w * f.side_,
+		f.field_->h * f.side_
+	};
+	return;
+}
+
+template<class FieldType, class Printer, class FieldTag>
+inline void FieldAdapter<FieldType, Printer, FieldTag>::SquareImplement::draw_grid(
+	FieldAdapter &f
+)
+{
+	// prepare rect
+	sf::RectangleShape rect;
+	float rectside = f.side_ - f.gridthick_/2.0f;
+	rect.setSize( { rectside, rectside } );
+	rect.setOrigin(
+		rectside / 2.0f,
+		rectside / 2.0f
+	);
+	rect.setFillColor(sf::Color::Transparent);
+	rect.setOutlineThickness(f.gridthick_);
+	rect.setOutlineColor(f.gridcolor_);
+
+		// draw in rtexture
+	f.rtexture_.clear(sf::Color::Transparent);
+	for(auto b = f.field_->begin(), e = f.field_->end(); b != e; ++b)
 	{
-		fullcellsize = cwidth;
-		size_.y = fullcellsize*field_->h +
-			( _drawbounds ? 2*_boundswidth : 0 );
-		rsize.y = _drawbounds ? size_.y-2*_boundswidth : size_.y;
-	}
-	else
-	{
-		fullcellsize = cheight;
-		size_.x = fullcellsize*field_->w +
-			(_drawbounds ? 2*_boundswidth : 0);
-		rsize.x = _drawbounds ? size_.x-2*_boundswidth : size_.x;
-	}
-	_isresized = true;
-
-	_cellsize = fullcellsize / (2*_bordertocell + 1);
-	bordersize = (fullcellsize-_cellsize)/2;
-
-	// bounds offset
-	if(_drawbounds)
-		boundsoffset_ = {_boundswidth, _boundswidth};
-	else
-		boundsoffset_ = {0, 0};
-
-	
-
-
-
-	// draw
-	_rtexture.create(size_.x, size_.y);
-
-
-	// draw grid
-	if(_drawgrid)
-	{
-		sf::RectangleShape rect;
-		rect.setFillColor(_gridcolor);
-
-
-		// Horizontal
-		rect.setSize(
-			{field_->w*(_cellsize+2*bordersize), _gridwidth}
-		);
 		rect.setPosition(
-			{boundsoffset_.x, boundsoffset_.y-_gridwidth/2}
+			f.field_->origin(b, f.side_) + off(f.side_)
 		);
-		_rtexture.draw(rect);
-		for(unsigned short int y = 0; y < field_->h; ++y)
-		{
-			rect.move(0.0, _cellsize+2*bordersize);
-			_rtexture.draw(rect);
-		}
-
-
-		// Vertical
-		rect.setSize(
-			{_gridwidth, field_->h*(_cellsize+2*bordersize)}
-		);
-		rect.setPosition(
-			{boundsoffset_.x-_gridwidth/2, boundsoffset_.y}
-		);
-		_rtexture.draw(rect);
-		for(unsigned short int x = 0; x < field_->w; ++x)
-		{
-			rect.move(_cellsize+2*bordersize, 0.0);
-			_rtexture.draw(rect);
-		}
+		f.rtexture_.draw(rect);
 	}
-
-
-
-	// draw bounds
-	if(_drawbounds)
-	{
-		sf::RectangleShape rect;
-		rect.setFillColor(_boundscolor);
-		
-
-		// Horizontal
-		rect.setSize({size_.x, _boundswidth});
-		_rtexture.draw(rect);
-
-		rect.setPosition({0.0f, size_.y-_boundswidth});
-		_rtexture.draw(rect);
-
-
-		// Verical
-		rect.setPosition({0.0f, 0.0f});
-		rect.setSize({_boundswidth, size_.y});
-		_rtexture.draw(rect);
-
-		rect.setPosition({size_.x-_boundswidth, 0.0f});
-		_rtexture.draw(rect);
-
-	}
-
-
-
-	// display
-	_rtexture.display();
-	_background.setTexture(_rtexture.getTexture(), true);
-
-	ischanged_ = false;
 
 	return;
 }
+	
+	
+	
+	
+	
+	// hexagon
+template<class FieldType, class Printer, class FieldTag>
+inline PointI
+FieldAdapter<FieldType, Printer, FieldTag>::HexagonImplement::cursorOn(
+	PointF p, FieldAdapter const &f
+)
+{
+	p -= off(f.side_);
+	PointI fp, sp;
+	int const
+		i = int( p.x / (1.5f*f.side_) ),
+		j = int( p.y / (0.866025*f.side_) );
+	if(i%2 == j%2)
+	{
+		fp = { i, j };
+		sp = { i+1, j+1 };
+	}
+	else
+	{
+		fp = { i+1, j };
+		sp = { i, j+1 };
+	}
+	return
+		f.field_->origin(fp, f.side_).dis(p) <
+		f.field_->origin(sp, f.side_).dis(p) ? fp : sp;
+}
+
+template<class FieldType, class Printer, class FieldTag>
+inline PointF
+FieldAdapter<FieldType, Printer, FieldTag>::HexagonImplement::off(float side)
+{
+	return OFF*side;
+}
+
+template<class FieldType, class Printer, class FieldTag>
+inline void FieldAdapter<FieldType, Printer, FieldTag>::HexagonImplement::adjust_size(
+	FieldAdapter &f
+)
+{
+	f.side_ = std::min(
+		f.size_.x / ( 3.0f * f.field_->w + 0.5f ),
+		1.154701f*f.size_.y / ( 1.0f + f.field_->h )
+	);
+	f.size_.x = (3.0f * f.field_->w + 0.5) * f.side_;
+	f.size_.y = 0.866025 * f.side_ * (1 + f.field_->h);
+
+	return;
+}
+
+template<class FieldType, class Printer, class FieldTag>
+inline void FieldAdapter<FieldType, Printer, FieldTag>::HexagonImplement::draw_grid(
+	FieldAdapter &f
+)
+{
+	// prepare circle
+	sf::CircleShape circle;
+	circle.setPointCount(6);
+	circle.setRadius( f.side_ - f.gridthick_/2.0f );
+	circle.setRotation(90);
+	circle.setOrigin(
+		circle.getRadius(),
+		circle.getRadius()
+	);
+	circle.setFillColor(sf::Color::Transparent);
+	circle.setOutlineThickness(f.gridthick_);
+	circle.setOutlineColor(f.gridcolor_);
+
+		// draw in rtexture
+	f.rtexture_.clear(sf::Color::Transparent);
+	for(auto b = f.field_->begin(), e = f.field_->end(); b != e; ++b)
+	{
+		circle.setPosition(
+			f.field_->origin(b, f.side_) + off(f.side_)
+		);
+		f.rtexture_.draw(circle);
+	}
+
+	return;
+}
+
+
 
 
 

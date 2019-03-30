@@ -25,7 +25,7 @@ Body const Body::DEFAULT = {
 };
 
 Cell const Cell::DEFAULT = {
-	0.0, nullptr, nullptr, nullptr
+	0.0, 1.0, nullptr, nullptr, nullptr
 };
 
 std::default_random_engine dre( time(0) );
@@ -122,8 +122,7 @@ BotField &BotField::free()
 void BotField::init_botfield(int width, int height)
 {
 	init(width, height);
-	zeroize();
-	// clear(Cell::DEFAULT);
+	set_cells_();
 	return;
 }
 
@@ -141,7 +140,7 @@ void BotField::reset()
 
 	bots.clear();
 	summen = grounden = planten = boten = 0.0;
-	clear(Cell::DEFAULT);
+	set_cells_();
 
 	return;
 }
@@ -165,35 +164,53 @@ void BotField::update_ground()
 			smoothf_.free();
 		smoothf_.init(w, h);
 	}
-	smoothf_.clear(0.0);
+	smoothf_.zeroize();
 
 
 
 	// main
 	double delta;
+	double t[OFFSET_COUNT];
+	double st;
 
 	int x, y;
 	for(auto b = begin(), e = end(); b != e; ++b)
 	{
 		getxy(b, x, y);
-		delta = at(x, y).energy * Cell::SMOOTH;
-		at(x, y).energy -= delta;
+		delta = b->energy * Cell::SMOOTH;
+		b->energy -= delta;
 
-		delta /= BotField::OFFSET_COUNT;
+		st = 0.0;
 		for(int i = 0; i < OFFSET_COUNT; ++i)
-			smoothf_.neart(x, y, i) += delta;
+		{
+			if(y+OFFSET[i][1] < 0 || y+OFFSET[i][1] >= h)
+			{
+				st += b->temp;
+				continue;
+			}
+			t[i] = neart(x, y, i).temp;
+			st += t[i];
+		}
+
+		for(int i = 0; i < OFFSET_COUNT; ++i)
+		{
+			if(y+OFFSET[i][1] < 0 || y+OFFSET[i][1] >= h)
+			{
+				b->energy += delta*b->temp/st;
+				continue;
+			}
+			smoothf_.neart(x, y, i) += delta*t[i]/st;
+		}
 	}
 
 	for(auto b = begin(), e = end(); b != e; ++b)
-	{
-		getxy(b, x, y);
-		at(x, y).energy += smoothf_.at(x, y);
-	}
+		b->energy += smoothf_.d[b-d];
 
 
 
 	return;
 }
+
 
 void BotField::update_standing()
 {
@@ -331,7 +348,10 @@ void BotField::update_bots()
 				to = &neart(x, y, choice);
 				++count;
 			}
-			while( (to->plant || to->bot || to->body) && count < 16 );
+			while( (
+				to->plant || to->bot || to->body ||
+				y+OFFSET[choice][1] < 0 || y+OFFSET[choice][1] >= h
+			) && count < 16 );
 
 			if(count == 16) // antifreeze
 				continue;
@@ -350,7 +370,10 @@ void BotField::update_bots()
 			to = &neart(x, y, choice);
 			++count;
 		}
-		while( ( to->bot || to->body ) && count < 16 );
+		while( (
+			to->bot || to->body ||
+			y+OFFSET[choice][1] < 0 || y+OFFSET[choice][1] >= h
+		) && count < 16 );
 
 		if(count == 16) // antifreeze
 			continue;
@@ -450,6 +473,23 @@ void BotField::ravage_ground(double k)
 		b->energy -= delta;
 		grounden -= delta;
 		summen -= delta;
+	}
+	return;
+}
+
+
+
+
+
+// private
+void BotField::set_cells_()
+{
+	int x, y;
+	for(auto b = begin(), e = end(); b != e; ++b)
+	{
+		getxy(b, x, y);
+		*b = Cell::DEFAULT;
+		b->temp = 40.0 - 39.0*y/h;
 	}
 	return;
 }
