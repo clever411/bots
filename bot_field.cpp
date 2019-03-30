@@ -3,7 +3,10 @@
 #include <cmath>
 #include <iostream>
 
+#include <clever/HelpFunction.hpp>
 
+
+using namespace clever;
 using namespace std;
 
 
@@ -16,8 +19,17 @@ Plant const Plant::DEFAULT = {
 };
 
 Bot const Bot::DEFAULT = {
-	0.0, 0, 0,
-	1.0, 1.0, 1.0, 1.0, 1.0
+	0.0, 0, 0, 0,
+	1.0, 1.0, 1.0, 1.0, 1.0,
+	{
+		CHECK,
+		MOVE, JUMP_BACKWARD | (0x02 << 3), NUL, NUL,
+		EAT, MOVE, JUMP_BACKWARD | (0x07 << 3), NUL,
+		TURN | (0x02 << 3), JUMP_BACKWARD | (0x0a << 3), NUL, NUL,
+		TURN | (0x02 << 3), JUMP_BACKWARD | (0x0e << 3), NUL, NUL,
+		NUL
+	},
+	0
 };
 
 Body const Body::DEFAULT = {
@@ -32,6 +44,9 @@ std::default_random_engine dre( time(0) );
 std::uniform_real_distribution<double> realdis(0.0, 1.0);
 std::uniform_int_distribution<int> dirdis(0, BotField::OFFSET_COUNT-1);
 std::uniform_int_distribution<int> mutdis(0, Bot::CHARACTERS_COUNT-1);
+std::uniform_int_distribution<int> turndis(0, 1);
+std::uniform_int_distribution<int> braindis(0, Bot::BRAIN_SIZE-1);
+std::uniform_int_distribution<uint8_t> neurondis(0u, 255u);
 
 
 
@@ -77,6 +92,8 @@ Bot *Bot::bud()
 
 	*characts[from] -= MUTATION_POWER;
 	*characts[to] += MUTATION_POWER;
+
+	brain[ braindis(dre) ] = neurondis(dre);
 
 
 
@@ -287,15 +304,16 @@ void BotField::update_bots()
 		// main
 	Cell *cell;
 	Bot *bot;
-	int x, y;
+	int x, y, tox, toy;
 		
 		// for step
 	double delta;
 
-		// for bud and move
+		// for bud, on brain
 	int choice;
 	int count;
 	Cell *to;
+	uint8_t command, action, param;
 
 
 
@@ -311,8 +329,8 @@ void BotField::update_bots()
 		delta = bot->stepprice() + bot->age * bot->agesteptax();
 		++bot->age;
 
-			// die
-		if( !( bot->energy - delta > bot->dieedge() ) )
+			// death
+		if( !( bot->energy - delta > bot->deathedge() ) )
 		{
 			cell->body = new Body { bot->energy, 0 };
 			bodyen += bot->energy;
@@ -331,6 +349,7 @@ void BotField::update_bots()
 		cell->energy += delta;
 		grounden += delta;
 		
+
 		
 		// bud
 		if(
@@ -362,51 +381,118 @@ void BotField::update_bots()
 		}
 		
 		
-		// move
+
+		// on brain
 		count = 0;
-		do
+		tox = x+OFFSET[bot->dir][0];
+		toy = y+OFFSET[bot->dir][1];
+		to = &att(tox, toy);
+		while(count < Bot::REPEAT_COMMAND_COUNT)
 		{
-			choice = dirdis(dre);
-			to = &neart(x, y, choice);
+			command = bot->brain[bot->p];
+			action = command & Bot::MASK;
+			param = command >> 3;
+			bot->p = (bot->p + 1) % Bot::BRAIN_SIZE;
+
+			switch(action)
+			{
+			case Bot::NUL:
+				break;
+
+			case Bot::MOVE:
+				if( toy < 0 || toy >= h || to->bot || to->body )
+					goto break_brain_loop_label;
+
+				cell->bot = nullptr;
+				to->bot = bot;
+				cell = *b = to;
+
+				goto break_brain_loop_label;
+
+			case Bot::EAT:
+				if(to->plant)
+				{
+					auto &plant = *to->plant;
+					if( !( plant.energy > bot->maxenergy() - bot->energy ) )
+					{
+						bot->energy += plant.energy;
+						boten += plant.energy;
+						planten -= plant.energy;
+						delete to->plant;
+						to->plant = nullptr;
+					}
+					else
+					{
+						delta = bot->maxenergy() - bot->energy;
+						plant.energy -= delta;
+						planten -= delta;
+						bot->energy += delta;
+						boten += delta;
+					}
+				}
+
+				goto break_brain_loop_label;
+
+			case Bot::TURN:
+				switch(param%3)
+				{
+				case 0:
+					bot->dir = tape(bot->dir-1, OFFSET_COUNT);
+					break;
+				case 1:
+					bot->dir = tape(bot->dir+1, OFFSET_COUNT);
+					break;
+				case 2:
+					bot->dir = tape(
+						bot->dir + ( turndis(dre) == 0 ? -1 : 1 ),
+						OFFSET_COUNT
+					);
+					break;
+				default:
+					throw 1;
+				}
+				tox = x + OFFSET[bot->dir][0];
+				toy = y + OFFSET[bot->dir][1];
+				to = &att(tox, toy);
+				
+				break;
+
+			case Bot::CHECK:
+				if(to->plant)
+					bot->p = (bot->p + Bot::CHECK_OFFSET) % Bot::BRAIN_SIZE;
+				else if(to->bot)
+					bot->p = (bot->p + 2*Bot::CHECK_OFFSET) % Bot::BRAIN_SIZE;
+				else if(to->body || toy < 0 || toy >= h)
+					bot->p = (bot->p + 3*Bot::CHECK_OFFSET) % Bot::BRAIN_SIZE;
+				
+				break;
+
+			case Bot::CALL:
+				choice = param % Bot::FUN_COUNT;
+				bot->p = Bot::MAINFUN_SIZE + Bot::FUN_SIZE*choice;
+				
+				break;
+
+			case Bot::JUMP_FORWARD:
+				bot->p = tape(bot->p-1+param, Bot::BRAIN_SIZE);
+				break;
+
+			case Bot::JUMP_BACKWARD:
+				bot->p = tape(bot->p-1-param, Bot::BRAIN_SIZE);
+				break;
+
+			default:
+				throw 1;
+
+			}
+
 			++count;
 		}
-		while( (
-			to->bot || to->body ||
-			y+OFFSET[choice][1] < 0 || y+OFFSET[choice][1] >= h
-		) && count < 16 );
-
-		if(count == 16) // antifreeze
-			continue;
-
-		cell->bot = nullptr;
-		to->bot = bot;
-		cell = *b = to;
-		
-		
-		// eat
-		if(to->plant)
-		{
-			auto &plant = *to->plant;
-			if( !( plant.energy > bot->maxenergy() - bot->energy ) )
-			{
-				bot->energy += plant.energy;
-				boten += plant.energy;
-				planten -= plant.energy;
-				delete to->plant;
-				to->plant = nullptr;
-			}
-			else
-			{
-				delta = bot->maxenergy() - bot->energy;
-				plant.energy -= delta;
-				planten -= delta;
-				bot->energy += delta;
-				boten += delta;
-			}
-		}
+	break_brain_loop_label:
+		;
 
 
-		continue;
+
 	}
 
 

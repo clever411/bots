@@ -26,19 +26,22 @@ struct Plant
 
 struct Bot
 {
+	// body
 	static constexpr int const
 		CHARACTERS_COUNT = 5;
 	static constexpr double const
 		MAX_ENERGY = 1000.0,
 		STEP_PRICE = 1.0,
 		AGE_STEP_TAX = 0.1,
-		AGE_DIE_TAX = 5.0,
+		AGE_DEATH_TAX = 5.0,
 		BUD_REQ = 400.0,
 		BUD_PRICE = 200.0,
 		MAX_MUTATION = 0.25,
-		MUTATION_POWER = 0.02;
+		MUTATION_POWER = 0.02,
+		TURN_CHANCE = 0.5;
 
 	double energy;
+	int dir;
 	int age;
 	int generation;
 
@@ -46,6 +49,35 @@ struct Bot
 		steppricek, agesteptaxk,
 		maxenergyk,
 		budreqk, budpricek;
+
+
+
+
+
+	// brain
+	static constexpr int const
+		MAINFUN_SIZE = 32,
+		FUN_SIZE = 16,
+		FUN_COUNT = 6,
+		BRAIN_SIZE = MAINFUN_SIZE + FUN_SIZE*FUN_COUNT,
+		REPEAT_COMMAND_COUNT = 16,
+		CHECK_OFFSET = 4;
+
+	static constexpr uint8_t const
+		MASK = 0x07,
+		NUL = 0x00,
+		MOVE = 0x01,
+		EAT = 0x02,
+		TURN = 0x03,
+		CHECK = 0x04,
+		CALL = 0x05,
+		JUMP_FORWARD = 0x06,
+		JUMP_BACKWARD = 0x07;
+
+	uint8_t brain[BRAIN_SIZE];
+	int p; // position in brain
+
+
 
 	inline double stepprice() const
 	{
@@ -67,9 +99,9 @@ struct Bot
 	{
 		return BUD_PRICE * (2.0 - budpricek);
 	}
-	inline double dieedge() const
+	inline double deathedge() const
 	{
-		return AGE_DIE_TAX * age;
+		return AGE_DEATH_TAX * age;
 	}
 
 	Bot *bud();

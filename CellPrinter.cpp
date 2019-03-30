@@ -43,14 +43,14 @@ CellPrinter &CellPrinter::set(Cell const &cell)
 
 	if(cell.bot)
 	{
-		k = (cell.bot->energy - cell.bot->dieedge()) / Bot::MAX_ENERGY * 2;
+		k = (cell.bot->energy - cell.bot->deathedge()) / Bot::MAX_ENERGY * 2;
 		setFillColor( botgrad_(k) );
 		return *this;
 	}
 
 	if(cell.body)
 	{
-		k = cell.body->energy / (Bot::AGE_DIE_TAX * 200);
+		k = cell.body->energy / (Bot::AGE_DEATH_TAX * 200);
 		setFillColor( bodygrad_(k) );
 		return *this;
 	}

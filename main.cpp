@@ -112,7 +112,7 @@ int main( int argc, char *argv[] )
 				case Keyboard::G:
 					field.ravage_ground(0.1);
 				case Keyboard::Add: case Keyboard::Up:
-					if( updatespeed < 1000.0 )
+					if( updatespeed < 4000.0 )
 					{
 						if( updatespeed > 99.5 )
 							updatespeed += 10.0;
@@ -194,7 +194,59 @@ int main( int argc, char *argv[] )
 								"max energy: " << cell.bot->maxenergyk  << "\n"
 								"bud req:    " << cell.bot->budreqk     << "\n"
 								"bud price:  " << cell.bot->budpricek   << "\n"
-								"------------------------------\n\n" << endl;
+								"brain:";
+
+							for(int i = 0; i < Bot::BRAIN_SIZE; ++i)
+							{
+								if(i % 8 == 0)
+									cout << '\n' << fills(
+										to_string(i/8) + ") ", 4
+									);
+								auto action = cell.bot->brain[i];
+								auto param = action >> 3;
+								action &= Bot::MASK;
+								switch(action)
+								{
+								case Bot::NUL:
+									cout << fills("NUL", 10);
+									break;
+								case Bot::MOVE:
+									cout << fills("MOVE", 10);
+									break;
+								case Bot::EAT:
+									cout << fills("EAT", 10);
+									break;
+								case Bot::TURN:
+									cout << fills(
+										"TURN(" + to_string(param%3) + ")",
+										10
+									);
+									break;
+								case Bot::CHECK:
+									cout << fills("CHECK", 10);
+									break;
+								case Bot::CALL:
+									cout << fills(
+										"CALL(" + to_string(param%Bot::FUN_COUNT) + ")",
+										10
+									);
+									break;
+								case Bot::JUMP_FORWARD:
+									cout << fills(
+										"JUMPF(" + to_string(param) + ")",
+										10
+									);
+									break;
+								case Bot::JUMP_BACKWARD:
+									cout << fills(
+										"JUMPB(" + to_string(param) + ")",
+										10
+									);
+									break;
+								}
+							}
+
+							cout << "\n------------------------------\n\n" << endl;
 						}
 						else if(cell.body)
 						{
@@ -216,7 +268,8 @@ int main( int argc, char *argv[] )
 					upfield = true;
 					if(isbkey)
 					{
-						Bot *bot = new Bot(Bot::DEFAULT);
+						Bot *bot = new Bot;
+						*bot = Bot::DEFAULT;
 						bot->energy = bot->budprice();
 						field.push( point.x, point.y, bot );
 					}

@@ -1,6 +1,8 @@
 #ifndef CLEVER_HELP_FUNCTION_HPP
 #define CLEVER_HELP_FUNCTION_HPP
 
+#include <algorithm>
+#include <iterator>
 #include <string>
 
 
@@ -32,6 +34,24 @@ inline std::string cutzero(std::string &&s)
 	return s[pos] == '.' ?
 		s.erase(pos+2) :
 		s.erase(pos+1);
+}
+
+inline std::string &fills(std::string &s, int n)
+{
+	if(s.size() >= n)
+		return s;
+	s.reserve(n);
+	std::fill_n( std::back_inserter(s), n-s.size(), ' ' );
+	return s;
+}
+
+inline std::string fills(std::string &&s, int n)
+{
+	if(s.size() >= n)
+		return s;
+	s.reserve(n);
+	std::fill_n( std::back_inserter(s), n-s.size(), ' ' );
+	return s;
 }
 
 
