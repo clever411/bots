@@ -1,9 +1,12 @@
+#include "init.hpp"
+
 #include <cstring>
 #include <memory>
 
-#include "init.hpp"
-
 #include "declare.hpp"
+#include "BotField.hpp"
+#include "Cell.hpp"
+#include "CellPrinter.hpp"
 
 
 using namespace clever;

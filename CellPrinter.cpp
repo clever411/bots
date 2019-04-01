@@ -1,4 +1,10 @@
 #include "CellPrinter.hpp"
+#include "Cell.hpp"
+#include "Plant.hpp"
+#include "Bot.hpp"
+#include "Body.hpp"
+#include "Mineral.hpp"
+
 
 using namespace clever;
 using namespace sf;
@@ -56,7 +62,18 @@ CellPrinter &CellPrinter::set(Cell const &cell)
 	}
 
 	k = cell.energy / Cell::DEFAULT_GROUND_ENERGY;
-	setFillColor( emptygrad_(k) );
+	if(k > 1.0)
+		k = 1.0;
+
+	double kair = cell.airenergy / 20.0;
+	if(kair > 1.0)
+		kair = 1.0;
+
+	setFillColor( Color(
+		0xff, 0x00, 0x00, 0xff*kair
+	) );
+
+	// setFillColor( emptygrad_(k) );
 	return *this;
 }
 

@@ -7,6 +7,13 @@
 
 #include "declare.hpp"
 #include "init.hpp"
+#include "BotField.hpp"
+#include "Cell.hpp"
+#include "Plant.hpp"
+#include "Bot.hpp"
+#include "Body.hpp"
+#include "Mineral.hpp"
+#include "CellPrinter.hpp"
 #include "Stat.hpp"
 
 

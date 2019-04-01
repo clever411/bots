@@ -6,14 +6,13 @@
 
 #include <clever/HexagonField.hpp>
 
-#include "Cell.hpp"
-#include "Plant.hpp"
-#include "Bot.hpp"
-#include "Body.hpp"
 
 
 
 
+struct Cell;
+struct Plant;
+struct Bot;
 
 struct BotField: public clever::HexagonField<Cell>
 {
@@ -52,8 +51,11 @@ struct BotField: public clever::HexagonField<Cell>
 
 
 private:
-	void update_ground();
-	void update_standing();
+	inline bool valid(clever::PointI const &p);
+	inline bool valid(clever::PointI const &p, int dir);
+
+	void update_environment_();
+	void update_entities_();
 
 	void set_cells_();
 	

@@ -8,20 +8,14 @@
 #include <clever/ChangingObject.hpp>
 #include <clever/SFML/FieldAdapter.hpp>
 
-#include "BotField.hpp"
-#include "CellPrinter.hpp"
-
-
-
-
-
-
-
 
 
 
 
 // types
+struct CellPrinter;
+struct BotField;
+
 typedef CellPrinter printer_type;
 typedef BotField field_type;
 typedef clever::HexagonFieldAdapter<field_type, printer_type> adapter_type;

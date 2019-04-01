@@ -1,6 +1,11 @@
 #include "Bot.hpp"
 
 #include "BotField.hpp"
+#include "Cell.hpp"
+#include "Plant.hpp"
+#include "Body.hpp"
+#include "Mineral.hpp"
+
 
 using namespace clever;
 using namespace std;
@@ -47,21 +52,14 @@ void Bot::update(field_type &f)
 	if( !( energy - delta > deathedge() ) )
 	{
 		cell.bot = nullptr;
-		f.boten -= energy;
-
 		cell.body = new Body { energy, 0 };
-		f.bodyen += energy;
-
 		delete this;
 		return;
 	}
 
 		// all right
 	energy -= delta;
-	f.boten -= delta;
-
 	cell.energy += delta;
-	f.grounden += delta;
 	
 
 	
@@ -235,9 +233,6 @@ void Bot::eat(field_type &f)
 	if( !( plant.energy > maxenergy() - energy ) )
 	{
 		energy += plant.energy;
-		f.boten += plant.energy;
-
-		f.planten -= plant.energy;
 		delete toc.plant;
 		toc.plant = nullptr;
 	}
@@ -245,10 +240,7 @@ void Bot::eat(field_type &f)
 	{
 		double const delta = maxenergy() - energy;
 		plant.energy -= delta;
-		f.planten -= delta;
-
 		energy += delta;
-		f.boten += delta;
 	}
 
 	return;

@@ -3,12 +3,13 @@
 
 #include <SFML/Graphics.hpp>
 
-#include "BotField.hpp"
 #include "Gradient.hpp"
 
 
 
 
+
+class Cell;
 
 class CellPrinter: public sf::CircleShape
 {

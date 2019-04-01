@@ -5,6 +5,12 @@
 
 #include <clever/HelpFunction.hpp>
 
+#include "Cell.hpp"
+#include "Plant.hpp"
+#include "Bot.hpp"
+#include "Body.hpp"
+#include "Mineral.hpp"
+
 
 using namespace clever;
 using namespace std;
@@ -82,8 +88,8 @@ void BotField::reset()
 // update
 void BotField::update()
 {
-	update_ground();
-	update_standing();
+	update_environment_();
+	update_entities_();
 	return;
 }
 
@@ -158,7 +164,17 @@ void BotField::ravage_ground(double k)
 
 
 // private implement
-void BotField::update_ground()
+inline bool BotField::valid(PointI const &p)
+{
+	return p.y >= 0 && p.y < h;
+}
+
+inline bool BotField::valid(PointI const &p, int dir)
+{
+	return p.y + OFFSET[dir][1] >= 0 && p.y + OFFSET[dir][1] < h;
+}
+
+void BotField::update_environment_()
 {
 	// prepare
 	if( smoothf_.w != w || smoothf_.h != h )
@@ -167,55 +183,68 @@ void BotField::update_ground()
 			smoothf_.free();
 		smoothf_.init(w, h);
 	}
+
+
+	// ground
 	smoothf_.zeroize();
 
-
-	// main
 	double delta;
-	double t[OFFSET_COUNT];
-	double st;
-	int x, y;
+	PointI p;
 
 	for(auto b = begin(), e = end(); b != e; ++b)
 	{
-		getxy(b, x, y);
+		p = getxy(b);
 
-		delta = b->energy * Cell::SMOOTH;
+		// to air
+		delta = b->energy * Cell::TOAIR_FACTOR;
+		b->energy -= delta;
+		b->airenergy += delta;
+
+		// to other
+		delta = b->energy * Cell::SMOOTH_FACTOR;
 		b->energy -= delta;
 
-		st = 0.0;
 		for(int i = 0; i < OFFSET_COUNT; ++i)
 		{
-			if( y + OFFSET[i][1] < 0 || y + OFFSET[i][1] >= h )
-			{
-				st += b->temp;
-				continue;
-			}
-			t[i] = neart(x, y, i).temp;
-			st += t[i];
+			if(!valid(p, i))
+				b->energy += delta * b->temp / b->tempenv;
+			else
+				smoothf_.neart(p, i) += delta * neart(p, i).temp / b->tempenv;
 		}
-
-		for(int i = 0; i < OFFSET_COUNT; ++i)
-		{
-			if( y + OFFSET[i][1] < 0 || y + OFFSET[i][1] >= h )
-			{
-				 b->energy += delta * b->temp / st;
-				 continue;
-			}
-			smoothf_.neart(x, y, i) += delta * t[i] / st;
-		}
-
 	}
-
 
 	for(int i = 0; i < w*h; ++i)
 		d[i].energy += smoothf_.d[i];
+	
+	
+	
+	// air
+	smoothf_.zeroize();
+	for(auto b = begin(), e = end(); b != e; ++b)
+	{
+		p = getxy(b);
+
+		delta = b->airenergy * Cell::AIRSMOOTH_FACTOR;
+		b->airenergy -= delta;
+
+		for(int i = 0; i < OFFSET_COUNT; ++i)
+		{
+			if(!valid(p, i))
+				b->airenergy += delta * ( b->airtemp / b->airtempenv );
+			else
+				smoothf_.neart(p, i) += delta * ( neart(p, i).airtemp / b->airtempenv );
+		}
+	}
+
+	for(int i = 0; i < w*h; ++i)
+		d[i].airenergy += smoothf_.d[i];
+
 
 
 	return;
 }
 
-void BotField::update_standing()
+void BotField::update_entities_()
 {
 	++age;
 
@@ -236,6 +265,9 @@ void BotField::update_standing()
 		if(b->body)
 			b->body->update(*b);
 
+		if(b->mineral)
+			b->mineral->update(*b);
+
 		// saw plant
 		if(
 			!b->plant && !b->bot && !b->body &&
@@ -255,13 +287,35 @@ void BotField::update_standing()
 
 void BotField::set_cells_()
 {
-	int x, y;
+	PointI p;
 	for(auto b = begin(), e = end(); b != e; ++b)
 	{
-		getxy(b, x, y);
+		p = getxy(b);
 		*b = Cell();
-		b->temp = 1.0 + pow(double(y), 2.0);
+		b->temp = 1.0 + pow(double(p.y), 2.0);
+		b->airtemp = 1.0 + pow(double(h-1-p.y), 2.0);
 	}
+
+	for(auto b = begin(), e = end(); b != e; ++b)
+	{
+		p = getxy(b);
+		b->tempenv = 0.0;
+		b->airtempenv = 0.0;
+		for(int i = 0; i < OFFSET_COUNT; ++i)
+		{
+			if(!valid(p, i))
+			{
+				b->tempenv += b->temp;
+				b->airtempenv += b->airtemp;
+			}
+			else
+			{
+				b->tempenv += neart(p, i).temp;
+				b->airtempenv += neart(p, i).airtemp;
+			}
+		}
+	}
+
 	return;
 }
 

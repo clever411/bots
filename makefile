@@ -29,34 +29,32 @@ clean:
 
 $(EXECUTABLE): \
 	main.o define.o init.o \
-	BotField.o Plant.o Bot.o Body.o\
+	BotField.o Plant.o Bot.o Body.o Mineral.o \
 	CellPrinter.o Gradient.o Stat.o
 	g++ $(LDFLAGS) -o $(EXECUTABLE) \
 	main.o define.o init.o \
-	BotField.o Plant.o Bot.o Body.o \
+	BotField.o Plant.o Bot.o Body.o Mineral.o \
 	CellPrinter.o Gradient.o Stat.o $(LIBS)
 
-main.o: main.cpp declare.hpp init.hpp Stat.hpp
+main.o: main.cpp declare.hpp init.hpp \
+	BotField.hpp Cell.hpp Plant.hpp Bot.hpp Body.hpp Mineral.hpp \
+	CellPrinter.hpp Stat.hpp
 	g++ $(CFLAGS) -o main.o main.cpp
 
 
 
-define.o: define.cpp declare.hpp
+define.o: define.cpp declare.hpp BotField.hpp Cell.hpp Plant.hpp Bot.hpp Body.hpp Mineral.hpp CellPrinter.hpp
 	g++ $(CFLAGS) -o define.o define.cpp
 
-declare.hpp: BotField.hpp CellPrinter.hpp
 
 
-
-init.o: init.cpp init.hpp declare.hpp
+init.o: init.cpp init.hpp declare.hpp BotField.hpp CellPrinter.hpp
 	g++ $(CFLAGS) -o init.o init.cpp
 
 
 
-BotField.o: BotField.cpp BotField.hpp
+BotField.o: BotField.cpp BotField.hpp Cell.hpp Plant.hpp Bot.hpp Body.hpp Mineral.hpp
 	g++ $(CFLAGS) -o BotField.o BotField.cpp
-
-BotField.hpp: Cell.hpp Plant.hpp Bot.hpp Body.hpp
 
 
 
@@ -64,7 +62,7 @@ Plant.o: Plant.cpp Plant.hpp Cell.hpp
 	g++ $(CFLAGS) -o Plant.o Plant.cpp
 
 
-Bot.o: Bot.cpp Bot.hpp BotField.hpp
+Bot.o: Bot.cpp Bot.hpp BotField.hpp Cell.hpp Plant.hpp Body.hpp Mineral.hpp
 	g++ $(CFLAGS) -o Bot.o Bot.cpp
 
 
@@ -72,14 +70,15 @@ Body.o: Body.cpp Body.hpp Cell.hpp
 	g++ $(CFLAGS) -o Body.o Body.cpp
 
 
+Mineral.o: Mineral.cpp Mineral.hpp Cell.hpp
+	g++ $(CFLAGS) -o Mineral.o Mineral.cpp
 
 
 
 
-CellPrinter.o: CellPrinter.cpp CellPrinter.hpp
+
+CellPrinter.o: CellPrinter.cpp CellPrinter.hpp Cell.hpp Plant.hpp Bot.hpp Body.hpp Mineral.hpp Gradient.hpp
 	g++ $(CFLAGS) -o CellPrinter.o CellPrinter.cpp
-
-CellPrinter.hpp: BotField.hpp Gradient.hpp
 
 
 
