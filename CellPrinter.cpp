@@ -1,4 +1,7 @@
 #include "CellPrinter.hpp"
+
+#include <iostream>
+
 #include "Cell.hpp"
 #include "Plant.hpp"
 #include "Bot.hpp"

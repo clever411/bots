@@ -323,9 +323,12 @@ int main( int argc, char *argv[] )
 				upfield = true;
 				if(isbkey)
 				{
-					Bot *bot = new Bot(Bot::DEFAULT);
+					Bot *bot = new Bot();
 					bot->energy = bot->budprice();
 					field.push( pos.x, pos.y, bot );
+					cout << "bot in field:" << endl;
+					std::cout << "bot->energy: " << bot->energy << std::endl;
+					std::cout << "bot->age: " << bot->age << std::endl;
 				}
 				else if(isleft)
 					field.push(pos.x, pos.y);

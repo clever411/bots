@@ -65,24 +65,23 @@ struct Bot
 
 
 	// data-members
-		// common
-	int worldage;
+	double energy = 0.0;
+	int x = 0, y = 0, dir = 0;
+	int worldage = 0, age = 0, generation = 0;
 
-	double energy;
-	int x, y;
-	int dir;
-	int age;
-	int generation;
-
-		// genom
 	float
-		steppricek, agesteptaxk,
-		maxenergyk,
-		budreqk, budpricek;
+		steppricek = 1.0f, agesteptaxk = 1.0f,
+		maxenergyk = 1.0f,
+		budreqk = 1.0f, budpricek = 1.0f;
 
-		// brain
-	neuron_type brain[BRAIN_SIZE];
-	int p; // position in brain
+	neuron_type brain[BRAIN_SIZE] = {
+		CHECK,
+		MOVE, JUMP_BACKWARD | (0x02 << 3), NUL, NUL,
+		EAT, MOVE, JUMP_BACKWARD | (0x07 << 3), NUL,
+		TURN | (0x02 << 3), JUMP_BACKWARD | (0x0a << 3), NUL, NUL,
+		NUL //, ...
+	};
+	int p = 0; // position in brain
 
 
 
@@ -119,13 +118,8 @@ struct Bot
 
 
 
-	static Bot const DEFAULT;
 	
-	
-	
-// private:
-	// bool step();
-
+private:
 	Bot *bud();
 
 	void move(field_type &f);

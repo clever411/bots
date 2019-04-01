@@ -1,5 +1,7 @@
 #include "Bot.hpp"
 
+#include <iostream>
+
 #include "BotField.hpp"
 #include "Cell.hpp"
 #include "Plant.hpp"
@@ -20,20 +22,6 @@ uniform_int_distribution<int> turndis(0, 1);
 uniform_int_distribution<int> braindis(0, Bot::BRAIN_SIZE-1);
 uniform_int_distribution<int> dirdis(0, BotField::OFFSET_COUNT-1);
 uniform_int_distribution<Bot::neuron_type> neurondis(0u, 255u);
-
-Bot const Bot::DEFAULT = {
-	0,
-	0.0, 0, 0, 0, 0, 0,
-	1.0, 1.0, 1.0, 1.0, 1.0,
-	{
-		CHECK,
-		MOVE, JUMP_BACKWARD | (0x02 << 3), NUL, NUL,
-		EAT, MOVE, JUMP_BACKWARD | (0x07 << 3), NUL,
-		TURN | (0x02 << 3), JUMP_BACKWARD | (0x0a << 3), NUL, NUL,
-		NUL //, ...
-	},
-	0
-};
 
 
 
