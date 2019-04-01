@@ -5,6 +5,8 @@
 
 
 
+struct Cell;
+
 struct Body
 {
 	static constexpr double const
@@ -13,6 +15,9 @@ struct Body
 
 	double energy = 0.0;
 	int age = 0;
+
+	void update(Cell &cell);
+
 };
 
 

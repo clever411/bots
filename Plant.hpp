@@ -5,6 +5,7 @@
 
 
 
+struct Cell;
 
 struct Plant
 {
@@ -15,6 +16,8 @@ struct Plant
 		BURN_CHANCE = 0.01;
 
 	double energy = 0.0;
+
+	void update(Cell &cell);
 };
 
 

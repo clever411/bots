@@ -230,45 +230,11 @@ void BotField::update_standing()
 
 		// plant
 		if(b->plant)
-		{
-			plant = b->plant;
-			delta = min(
-				(Plant::MAX_ENERGY - plant->energy) * Plant::TAKE_TO_SELF,
-				b->energy * Plant::TAKE_FROM_EATH
-			);
-			b->energy -= delta;
-			grounden -= delta;
-			plant->energy += delta;
-			planten += delta;
-		}
+			b->plant->update(*b);
 
 		// body
 		if(b->body)
-		{
-			body = b->body;
-			delta = Body::ROT_SPEED * pow(
-				Body::ROT_ACCELERATION, sqrt(double(body->age))
-			);
-
-			if( !(body->energy > delta) )
-			{
-				b->energy += body->energy;
-				grounden += body->energy;
-				bodyen -= body->energy;
-
-				delete body;
-				b->body = nullptr;
-			}
-			else
-			{
-				body->energy -= delta;
-				bodyen -= delta;
-				b->energy += delta;
-				grounden += delta;
-
-				++body->age;
-			}
-		}
+			b->body->update(*b);
 
 		// saw plant
 		if(
@@ -279,10 +245,7 @@ void BotField::update_standing()
 			) * Plant::BURN_CHANCE >
 			realdis(dre)
 		)
-		{
 			b->plant = new Plant{ 0.0 };
-		}
-
 	}
 
 

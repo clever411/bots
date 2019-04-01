@@ -29,11 +29,11 @@ clean:
 
 $(EXECUTABLE): \
 	main.o define.o init.o \
-	BotField.o Bot.o \
+	BotField.o Plant.o Bot.o Body.o\
 	CellPrinter.o Gradient.o Stat.o
 	g++ $(LDFLAGS) -o $(EXECUTABLE) \
 	main.o define.o init.o \
-	BotField.o Bot.o \
+	BotField.o Plant.o Bot.o Body.o \
 	CellPrinter.o Gradient.o Stat.o $(LIBS)
 
 main.o: main.cpp declare.hpp init.hpp Stat.hpp
@@ -60,8 +60,17 @@ BotField.hpp: Cell.hpp Plant.hpp Bot.hpp Body.hpp
 
 
 
+Plant.o: Plant.cpp Plant.hpp Cell.hpp
+	g++ $(CFLAGS) -o Plant.o Plant.cpp
+
+
 Bot.o: Bot.cpp Bot.hpp BotField.hpp
 	g++ $(CFLAGS) -o Bot.o Bot.cpp
+
+
+Body.o: Body.cpp Body.hpp Cell.hpp
+	g++ $(CFLAGS) -o Body.o Body.cpp
+
 
 
 
