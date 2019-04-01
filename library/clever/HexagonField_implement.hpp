@@ -177,8 +177,8 @@ inline void HexagonField<ValueType>::getxy(
 	int &x, int &y
 ) const
 {
-	y = (p-d)/w;
-	x = (p-d)%w*2 + (y%2 ? 1 : 0);
+	y = int(p-d)/w;
+	x = int(p-d)%w*2 + (y%2 ? 1 : 0);
 	return;
 }
 
@@ -188,8 +188,8 @@ inline PointI HexagonField<ValueType>::getxy(
 ) const
 {
 	return {
-		(p-d)%w*2 + ((p-d)/w%2 ? 1 : 0),
-		(p-d)/w
+		int(p-d)%w*2 + (int(p-d)/w%2 ? 1 : 0),
+		int(p-d)/w
 	};
 }
 
@@ -724,6 +724,72 @@ HexagonField<ValueType>::Iterator<IsConst, TapeMode>::operator--(int)
 
 
 
+template<typename ValueType>
+template<class IsConst, class TapeMode>
+HexagonField<ValueType>::Iterator<IsConst, TapeMode> &
+HexagonField<ValueType>::Iterator<IsConst, TapeMode>::incy()
+{
+	++y;
+	if(y%2)
+		++x;
+	else
+		--x;
+	d += fw;
+	return *this;
+}
+
+template<typename ValueType>
+template<class IsConst, class TapeMode>
+HexagonField<ValueType>::Iterator<IsConst, TapeMode> &
+HexagonField<ValueType>::Iterator<IsConst, TapeMode>::incy(int n)
+{
+	y += n;
+	if(n%2)
+	{
+		if(y%2)
+			++x;
+		else
+			--x;
+	}
+	d += fw*n;
+	return *this;
+}
+
+
+
+template<typename ValueType>
+template<class IsConst, class TapeMode>
+HexagonField<ValueType>::Iterator<IsConst, TapeMode> &
+HexagonField<ValueType>::Iterator<IsConst, TapeMode>::reducey()
+{
+	--y;
+	if(y%2)
+		++x;
+	else
+		--x;
+	d -= fw;
+	return *this;
+}
+
+template<typename ValueType>
+template<class IsConst, class TapeMode>
+HexagonField<ValueType>::Iterator<IsConst, TapeMode> &
+HexagonField<ValueType>::Iterator<IsConst, TapeMode>::reducey(int n)
+{
+	y -= n;
+	if(n%2)
+	{
+		if(y%2)
+			++x;
+		else
+			--x;
+	}
+	d -= fw*n;
+	return *this;
+}
+
+
+
 
 
 // at
@@ -737,10 +803,10 @@ HexagonField<ValueType>::Iterator<IsConst, TapeMode>::operator*() const
 
 template<typename ValueType>
 template<class IsConst, class TapeMode>
-typename HexagonField<ValueType>::template Iterator<IsConst, TapeMode>::value_type &
+typename HexagonField<ValueType>::template Iterator<IsConst, TapeMode>::value_type *
 HexagonField<ValueType>::Iterator<IsConst, TapeMode>::operator->() const
 {
-	return *d;
+	return d;
 }
 
 
@@ -795,6 +861,16 @@ inline bool HexagonField<ValueType>::Iterator<IsConst, TapeMode>::operator!=(
 
 
 	// end
+template<typename ValueType>
+template<class IsConst, class TapeMode>
+inline bool HexagonField<ValueType>::Iterator<IsConst, TapeMode>::isedge() const
+{
+	int xobj = x - (y%2 ? 1 : 0);
+	int leftobj = left - (top%2 ? 1 : 0);
+	return xobj == leftobj || xobj == leftobj + (width - 1)*2 ||
+		y == top || y == top+height-1;
+}
+
 template<typename ValueType>
 template<class IsConst, class TapeMode>
 inline bool HexagonField<ValueType>::Iterator<IsConst, TapeMode>::isend() const

@@ -74,10 +74,17 @@ private:
 		Iterator &operator--();
 		inline Iterator operator--(int);
 
+		Iterator &incy();
+		Iterator &incy(int n);
+
+		Iterator &reducey();
+		Iterator &reducey(int n);
+
+
 
 		// at
 		inline value_type &operator*() const;
-		inline value_type &operator->() const;
+		inline value_type *operator->() const;
 
 		inline value_type *base() const;
 		inline PointI point() const;
@@ -91,6 +98,7 @@ private:
 		template<class C, class TM>
 		inline bool operator!=(Iterator<C, TM> const &rhs) const;
 
+		inline bool isedge() const;
 		inline bool isend() const;
 
 		// создаёт новый итератор, который можно потом изменять:
@@ -130,7 +138,8 @@ private:
 		// data-members
 		int top, left, width, height, fw, fh;
 		int x, y;
-		value_type *d, *fd;
+		mutable value_type *d;
+		value_type *fd;
 
 
 

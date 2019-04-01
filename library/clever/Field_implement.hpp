@@ -739,6 +739,50 @@ Field<ValueType>::Iterator<IsConst, TapeMode>::operator--(int)
 
 
 
+template<typename ValueType>
+template<class IsConst, class TapeMode>
+Field<ValueType>::Iterator<IsConst, TapeMode> &
+Field<ValueType>::Iterator<IsConst, TapeMode>::incy()
+{
+	++y;
+	d += fw;
+	return *this;
+}
+
+template<typename ValueType>
+template<class IsConst, class TapeMode>
+Field<ValueType>::Iterator<IsConst, TapeMode> &
+Field<ValueType>::Iterator<IsConst, TapeMode>::incy(int n)
+{
+	y += n;
+	d += fw*n;
+	return *this;
+}
+
+
+
+template<typename ValueType>
+template<class IsConst, class TapeMode>
+Field<ValueType>::Iterator<IsConst, TapeMode> &
+Field<ValueType>::Iterator<IsConst, TapeMode>::reducey()
+{
+	--y;
+	d -= fw;
+	return *this;
+}
+
+template<typename ValueType>
+template<class IsConst, class TapeMode>
+Field<ValueType>::Iterator<IsConst, TapeMode> &
+Field<ValueType>::Iterator<IsConst, TapeMode>::reducey(int n)
+{
+	y -= n;
+	d -= fw*n;
+	return *this;
+}
+
+
+
 
 
 // at
@@ -752,10 +796,10 @@ Field<ValueType>::Iterator<IsConst, TapeMode>::operator*() const
 
 template<typename ValueType>
 template<class IsConst, class TapeMode>
-typename Field<ValueType>::template Iterator<IsConst, TapeMode>::value_type &
+typename Field<ValueType>::template Iterator<IsConst, TapeMode>::value_type *
 Field<ValueType>::Iterator<IsConst, TapeMode>::operator->() const
 {
-	return *d;
+	return d;
 }
 
 
@@ -810,6 +854,13 @@ inline bool Field<ValueType>::Iterator<IsConst, TapeMode>::operator!=(
 
 
 	// end
+template<typename ValueType>
+template<class IsConst, class TapeMode>
+inline bool Field<ValueType>::Iterator<IsConst, TapeMode>::isedge() const
+{
+	return x == left || x == left+width-1 || y == top || y == top+height-1;
+}
+
 template<typename ValueType>
 template<class IsConst, class TapeMode>
 inline bool Field<ValueType>::Iterator<IsConst, TapeMode>::isend() const

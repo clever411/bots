@@ -8,7 +8,7 @@
 #include <clever/ChangingObject.hpp>
 #include <clever/SFML/FieldAdapter.hpp>
 
-#include "bot_field.hpp"
+#include "BotField.hpp"
 #include "CellPrinter.hpp"
 
 

@@ -43,7 +43,7 @@ CellPrinter &CellPrinter::set(Cell const &cell)
 
 	if(cell.bot)
 	{
-		k = (cell.bot->energy - cell.bot->deathedge()) / Bot::MAX_ENERGY * 2;
+		k = (cell.bot->energy - cell.bot->deathedge()) / cell.bot->maxenergy();
 		setFillColor( botgrad_(k) );
 		return *this;
 	}
