@@ -73,8 +73,7 @@ void print(Bot const &bot)
 		}
 
 		auto action = bot.brain[i];
-		auto param = action >> 3;
-		action &= Bot::MASK;
+		action &= Bot::JUMP_MASK;
 		switch(action)
 		{
 		case Bot::NUL:
@@ -88,28 +87,13 @@ void print(Bot const &bot)
 			break;
 		case Bot::TURN:
 			cout << fills(
-				"TURN(" + to_string(param%3) + ")",
+				"TURN(" + to_string(action-Bot::TURN) + ")",
 				10
 			);
 			break;
 		case Bot::CHECK:
-			cout << fills("CHECK", 10);
-			break;
-		case Bot::CALL:
 			cout << fills(
-				"CALL(" + to_string(param%Bot::FUN_COUNT) + ")",
-				10
-			);
-			break;
-		case Bot::JUMP_FORWARD:
-			cout << fills(
-				"JUMPF(" + to_string(param) + ")",
-				10
-			);
-			break;
-		case Bot::JUMP_BACKWARD:
-			cout << fills(
-				"JUMPB(" + to_string(param) + ")",
+				"TURN(" + to_string(action-Bot::CHECK) + ")",
 				10
 			);
 			break;

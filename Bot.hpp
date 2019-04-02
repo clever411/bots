@@ -23,7 +23,7 @@ struct BotField;
 struct Bot
 {
 	typedef BotField field_type;
-	typedef uint8_t neuron_type;
+	typedef uint16_t neuron_type;
 
 
 
@@ -43,23 +43,17 @@ struct Bot
 
 	// brain
 	static constexpr int const
-		MAINFUN_SIZE = 32,
-		FUN_SIZE = 16,
-		FUN_COUNT = 6,
-		BRAIN_SIZE = MAINFUN_SIZE + FUN_SIZE*FUN_COUNT,
-		REPEAT_COMMAND_COUNT = 16,
-		CHECK_OFFSET = 4;
+		BRAIN_SIZE = 64,
+		REPEAT_COMMAND_COUNT = 16;
 
 	static constexpr neuron_type const
-		MASK = 0x07,
+		ACTION_MASK = 0x0f,
+		JUMP_MASK = 0x3f,
 		NUL = 0x00,
 		MOVE = 0x01,
 		EAT = 0x02,
-		TURN = 0x03,
-		CHECK = 0x04,
-		CALL = 0x05,
-		JUMP_FORWARD = 0x06,
-		JUMP_BACKWARD = 0x07;
+		TURN = 0x04,
+		CHECK = 0x08;
 
 
 
@@ -75,11 +69,11 @@ struct Bot
 		budreqk = 1.0f, budpricek = 1.0f;
 
 	neuron_type brain[BRAIN_SIZE] = {
-		CHECK,
-		MOVE, JUMP_BACKWARD | (0x02 << 3), NUL, NUL,
-		EAT, MOVE, JUMP_BACKWARD | (0x07 << 3), NUL,
-		TURN | (0x02 << 3), JUMP_BACKWARD | (0x0a << 3), NUL, NUL,
-		NUL //, ...
+		// CHECK,
+		// MOVE, JUMP_BACKWARD | (0x02 << 3), NUL, NUL,
+		// EAT, MOVE, JUMP_BACKWARD | (0x07 << 3), NUL,
+		// TURN | (0x02 << 3), JUMP_BACKWARD | (0x0a << 3), NUL, NUL,
+		// NUL //, ...
 	};
 	int p = 0; // position in brain
 
@@ -88,7 +82,9 @@ struct Bot
 
 
 	// methods
+	Bot();
 	void update(field_type &f);
+	void random_fill_brain();
 
 	inline double stepprice() const
 	{
@@ -125,11 +121,14 @@ private:
 	void move(field_type &f);
 	void eat(field_type &f);
 	void turn(neuron_type arg);
-	void check(field_type const &f);
-	void call(neuron_type arg);
-	void jumpf(neuron_type arg);
-	void jumpb(neuron_type arg);
+	void check(
+		field_type const &f,
+		neuron_type action,
+		neuron_type jmp
+	);
+	void jump(neuron_type arg);
 
+	inline neuron_type random_neuron();
 	inline void incp();
 	inline clever::PointI getto() const;
 	inline bool valid(

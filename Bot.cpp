@@ -16,18 +16,12 @@ using namespace std;
 
 
 
-// objects
-uniform_int_distribution<int> mutdis(0, Bot::CHARACTERS_COUNT-1);
-uniform_int_distribution<int> turndis(0, 1);
-uniform_int_distribution<int> braindis(0, Bot::BRAIN_SIZE-1);
-uniform_int_distribution<int> dirdis(0, BotField::OFFSET_COUNT-1);
-uniform_int_distribution<Bot::neuron_type> neurondis(0u, 255u);
-
-
-
-
-
 // core
+Bot::Bot()
+{
+	random_fill_brain();
+}
+
 void Bot::update(field_type &f)
 {
 	++age;
@@ -79,18 +73,18 @@ void Bot::update(field_type &f)
 
 	// on brain
 	int count = 0;
-	neuron_type action, arg;
+	neuron_type action, jmp;
 	while(count < REPEAT_COMMAND_COUNT)
 	{
-		action = brain[p] & MASK;
-		arg = brain[p] >> 3;
+		action = brain[p] & ACTION_MASK;
+		jmp = brain[p] >> 4;
 
 		switch(action)
 		{
 		case NUL:
 		{
 			int i = 0;
-			for(; brain[p] & MASK == NUL && i != BRAIN_SIZE; ++i)
+			for(; brain[p] & JUMP_MASK == NUL && i != BRAIN_SIZE; ++i)
 				incp();
 			if(i == BRAIN_SIZE)
 				return;
@@ -99,34 +93,22 @@ void Bot::update(field_type &f)
 
 		case MOVE:
 			move(f);
-			incp();
+			jump(jmp);
 			return;
 
 		case EAT:
 			eat(f);
-			incp();
+			jump(jmp);
 			return;
 
-		case TURN:
-			turn(arg%3);
-			incp();
+		case TURN: case TURN+1: case TURN+2:
+			turn(action-TURN);
+			jump(jmp);
 			break;
 
-		case CHECK:
-			check(f);
-			incp();
-			break;
-
-		case CALL:
-			call(arg%FUN_COUNT);
-			break;
-
-		case JUMP_FORWARD:
-			jumpf(arg);
-			break;
-
-		case JUMP_BACKWARD:
-			jumpb(arg);
+		case CHECK: case CHECK+1:
+		case CHECK+2: case CHECK+3:
+			check(f, action-CHECK, jmp);
 			break;
 
 		default:
@@ -142,8 +124,22 @@ void Bot::update(field_type &f)
 	return;
 }
 
+void Bot::random_fill_brain()
+{
+	for(auto *b = brain, *e = brain+BRAIN_SIZE; b != e; ++b)
+		*b = random_neuron();
+	return;
+}
+
+
+
+// actions
 Bot *Bot::bud()
 {
+	static uniform_int_distribution<int>
+		mutdis(0, CHARACTERS_COUNT-1),
+		braindis(0, BRAIN_SIZE-1);
+
 	// burn
 	Bot *child = new Bot(*this);
 	child->age = 0;
@@ -182,16 +178,13 @@ Bot *Bot::bud()
 	*characts[from] -= MUTATION_POWER;
 	*characts[to] += MUTATION_POWER;
 
-	child->brain[ braindis(dre) ] = neurondis(dre);
+	child->brain[ braindis(dre) ] = random_neuron();
 
 
 
 	return child;
 }
 
-
-
-// actions
 void Bot::move(field_type &f)
 {
 	auto to = getto();
@@ -236,6 +229,8 @@ void Bot::eat(field_type &f)
 
 void Bot::turn(neuron_type arg)
 {
+	static uniform_int_distribution<int> turndis(0, 1);
+
 	switch(arg)
 	{
 	case 0:
@@ -257,55 +252,75 @@ void Bot::turn(neuron_type arg)
 	return;
 }
 
-void Bot::check(field_type const &f)
+void Bot::check(field_type const &f, neuron_type action, neuron_type jmp)
 {
 	auto to = getto();
 	auto const &toc = f.att(to);
 
-	int off = 0;
-	if(!valid(to, f) || toc.bot || toc.body)
-		off = 2;
-	else if(toc.plant)
-		off = 1;
+	bool is = false;
+	switch(action)
+	{
+	case 0:
+		is = !toc.bot && !toc.body;
+		break;
+	case 1:
+		is = toc.plant;
+		break;
+	case 2:
+		is = toc.bot;
+		break;
+	case 3:
+		is = toc.body;
+		break;
+	default:
+		throw 1;
+	}
 
-	p = (p + off*CHECK_OFFSET) % BRAIN_SIZE;
+	if(is)
+		jump(jmp);
+	else
+		jump(jmp >> 6);
 	
 	return;
 }
 
-void Bot::call(neuron_type arg)
+void Bot::jump(neuron_type jmp)
 {
-	p = MAINFUN_SIZE + arg*FUN_SIZE;
-	return;
-}
-
-void Bot::jumpf(neuron_type arg)
-{
-	p = (p + arg) % BRAIN_SIZE;
-	return;
-}
-
-void Bot::jumpb(neuron_type arg)
-{
-	p = tape(p-(int)arg, BRAIN_SIZE);
+	p = jmp & JUMP_MASK;
 	return;
 }
 
 
 
 // private help
-inline PointI Bot::getto() const
+inline Bot::neuron_type Bot::random_neuron()
 {
-	return {
-		x + field_type::OFFSET[dir][0],
-		y + field_type::OFFSET[dir][1]
+	static constexpr neuron_type NEURONS[] = {
+		NUL, EAT, MOVE,
+		TURN, TURN+1, TURN+2,
+		CHECK, CHECK+1, CHECK+2, CHECK+3
 	};
+	static constexpr int const
+		NEURONS_SIZE = sizeof(NEURONS) / sizeof(neuron_type);
+	static std::uniform_int_distribution<int>
+		neurondis(0, NEURONS_SIZE-1),
+		jumpdis(0, BRAIN_SIZE-1);
+
+	return NEURONS[ neurondis(dre) ] + (jumpdis(dre) << 6) + (jumpdis(dre) << 12);
 }
 
 inline void Bot::incp()
 {
 	p = (p + 1) % BRAIN_SIZE;
 	return;
+}
+
+inline PointI Bot::getto() const
+{
+	return {
+		x + field_type::OFFSET[dir][0],
+		y + field_type::OFFSET[dir][1]
+	};
 }
 
 inline bool Bot::valid(
