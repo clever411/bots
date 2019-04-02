@@ -26,6 +26,23 @@ using namespace std;
 
 
 // functions
+void print(Cell const &cell)
+{
+	cout << "it's empty\n"
+		"energy: " << cell.energy << "\n"
+		"------------------------------\n\n";
+
+	return;
+}
+
+void print(Plant const &plant)
+{
+	cout << "it's plant\n"
+		"energy: " << plant.energy << "\n"
+		"------------------------------\n\n";
+	return;
+}
+
 void print(Bot const &bot)
 {
 	cout << "it's bot\n"
@@ -101,19 +118,11 @@ void print(Bot const &bot)
 
 	cout << "\n"
 		"addr: " << &bot << "\n"
-		// "wage: " << bot.worldage   << "\n"
+		"wage: " << bot.worldage   << "\n"
 		"p:    " << bot.p   << "\n"
 		"dir:  " << bot.dir << "\n"
 		"------------------------------\n\n";
 
-	return;
-}
-
-void print(Plant const &plant)
-{
-	cout << "it's plant\n"
-		"energy: " << plant.energy << "\n"
-		"------------------------------\n\n";
 	return;
 }
 
@@ -122,15 +131,6 @@ void print(Body const &body)
 	cout << "it's body\n"
 		"energy: " << body.energy << "\n"
 		"age:    " << body.age << "\n"
-		"------------------------------\n\n";
-
-	return;
-}
-
-void print(Cell const &cell)
-{
-	cout << "it's empty\n"
-		"energy: " << cell.energy << "\n"
 		"------------------------------\n\n";
 
 	return;
@@ -258,6 +258,9 @@ int main( int argc, char *argv[] )
 				case Keyboard::G:
 					field.ravage_ground(0.1);
 					break;
+				case Keyboard::H:
+					field.random_bots(10);
+					break;
 				case Keyboard::I:
 					pos = adapter.cursorOn(
 						makep<float>(Mouse::getPosition(window))
@@ -326,9 +329,6 @@ int main( int argc, char *argv[] )
 					Bot *bot = new Bot();
 					bot->energy = bot->budprice();
 					field.push( pos.x, pos.y, bot );
-					cout << "bot in field:" << endl;
-					std::cout << "bot->energy: " << bot->energy << std::endl;
-					std::cout << "bot->age: " << bot->age << std::endl;
 				}
 				else if(isleft)
 					field.push(pos.x, pos.y);

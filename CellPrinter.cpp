@@ -68,15 +68,15 @@ CellPrinter &CellPrinter::set(Cell const &cell)
 	if(k > 1.0)
 		k = 1.0;
 
-	double kair = cell.airenergy / 20.0;
-	if(kair > 1.0)
-		kair = 1.0;
+	// double kair = cell.airenergy / 20.0;
+	// if(kair > 1.0)
+		// kair = 1.0;
 
-	setFillColor( Color(
-		0xff, 0x00, 0x00, 0xff*kair
-	) );
+	// setFillColor( Color(
+		// 0xff, 0x00, 0x00, 0xff*kair
+	// ) );
 
-	// setFillColor( emptygrad_(k) );
+	setFillColor( emptygrad_(k) );
 	return *this;
 }
 

@@ -43,10 +43,11 @@ struct BotField: public clever::HexagonField<Cell>
 
 	bool push(int x, int y, Bot *bot);
 	bool push(int x, int y, Plant *plant);
-	double push(int x, int y);
+	void push(int x, int y);
 
 	void random_fill(int cellcount);
 	void ravage_ground(double k);
+	void random_bots(int count);
 
 
 

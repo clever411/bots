@@ -106,8 +106,6 @@ bool BotField::push(int x, int y, Bot *bot)
 	bot->x = x;
 	bot->y = y;
 	cell->bot = bot;
-	boten += bot->energy;
-	summen += bot->energy;
 	return true;
 }
 
@@ -122,14 +120,11 @@ bool BotField::push(int x, int y, Plant *plant)
 	return true;
 }
 
-double BotField::push(int x, int y)
+void BotField::push(int x, int y)
 {
 	auto &cell = at(x, y);
-	double const delta = Cell::DEFAULT_GROUND_ENERGY - cell.energy;
-	cell.energy += delta;
-	grounden += delta;
-	summen += delta;
-	return delta;
+	cell.energy = Cell::DEFAULT_GROUND_ENERGY;
+	return;
 }
 
 
@@ -158,6 +153,24 @@ void BotField::ravage_ground(double k)
 		grounden -= delta;
 		summen -= delta;
 	}
+	return;
+}
+
+void BotField::random_bots(int count)
+{
+	uniform_int_distribution<int>
+		widthdis(0, w-1), heightdis(0, h-1);
+	Bot *bot = new Bot;
+	int x, y;
+	for(int i = 0; i < count; ++i)
+	{
+		bot->energy = bot->budprice();
+		y = heightdis(dre);
+		x = widthdis(dre)*2 + (y%2 ? 1 : 0);
+		if(push(x, y, bot))
+			bot = new Bot;
+	}
+	delete bot;
 	return;
 }
 
@@ -196,9 +209,11 @@ void BotField::update_environment_()
 		p = getxy(b);
 
 		// to air
-		delta = b->energy * Cell::TOAIR_FACTOR;
-		b->energy -= delta;
-		b->airenergy += delta;
+		/*
+		 * delta = b->energy * Cell::TOAIR_FACTOR;
+		 * b->energy -= delta;
+		 * b->airenergy += delta;
+		 */
 
 		// to other
 		delta = b->energy * Cell::SMOOTH_FACTOR;
@@ -216,6 +231,7 @@ void BotField::update_environment_()
 	for(int i = 0; i < w*h; ++i)
 		d[i].energy += smoothf_.d[i];
 	
+	return;
 	
 	
 	// air

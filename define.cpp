@@ -44,8 +44,8 @@ adapter_type adapter;
 
 // field
 field_type field;
-int const DEFAULT_FIELD_WIDTH = 30;
-int const DEFAULT_FIELD_HEIGHT = 50;
+int const DEFAULT_FIELD_WIDTH = 90;
+int const DEFAULT_FIELD_HEIGHT = 150;
 
 statstring_type
 	agestring("age: 0"),

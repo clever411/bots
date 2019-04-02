@@ -65,7 +65,7 @@ struct Bot
 
 
 	// data-members
-	double energy = 0.0;
+	double energy = BUD_PRICE;
 	int x = 0, y = 0, dir = 0;
 	int worldage = 0, age = 0, generation = 0;
 
