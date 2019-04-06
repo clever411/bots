@@ -23,37 +23,50 @@ struct BotField;
 struct Bot
 {
 	typedef BotField field_type;
-	typedef uint16_t neuron_type;
+	typedef uint32_t neuron_type;
 
 
 
 	// body
 	static constexpr int const
 		CHARACTERS_COUNT = 5;
+
 	static constexpr double const
 		MAX_ENERGY = 1000.0,
-		STEP_PRICE = 1.0,
-		AGE_STEP_TAX = 0.1,
-		AGE_DEATH_TAX = 5.0,
-		BUD_REQ = 400.0,
-		BUD_PRICE = 200.0,
-		MAX_MUTATION = 0.25,
+		DEATH_EDGE = 200.0,
+		STEP_PRICE = 0.5,
+		AGE_STEP_TAX = 0.01,
+		AGE_DEATH_TAX = 0.5,
+		BUD_REQ = 600.0,
+		BUD_PRICE = 400.0,
+		MAX_MUTATION = 0.2,
 		MUTATION_POWER = 0.02,
-		TURN_CHANCE = 0.5;
+
+		MINERAL_TAKE = 25.0,
+		AIR_TAKE_FACTOR = 0.5;
+
 
 	// brain
 	static constexpr int const
 		BRAIN_SIZE = 64,
 		REPEAT_COMMAND_COUNT = 16;
 
+
 	static constexpr neuron_type const
+		ACTION_OFFSET = 0,
 		ACTION_MASK = 0x0f,
-		JUMP_MASK = 0x3f,
+
+		ARG_OFFSET = 4,
+		ARG_MASK = 0x0fff,
+
+		JUMPF_OFFSET = 16, JUMPS_OFFSET = 24,
+		JUMP_MASK = 0xff,
+
 		NUL = 0x00,
 		MOVE = 0x01,
 		EAT = 0x02,
-		TURN = 0x04,
-		CHECK = 0x08;
+		TURN = 0x03,
+		CHECK = 0x04;
 
 
 
@@ -113,29 +126,55 @@ struct Bot
 
 
 
+	inline neuron_type getaction( neuron_type neuron )
+	{
+		return (neuron >> ACTION_OFFSET) & ACTION_MASK;
+	}
+	inline neuron_type getarg( neuron_type neuron )
+	{
+		return (neuron >> ARG_OFFSET) & ARG_MASK;
+	}
+	inline neuron_type getjumpf( neuron_type neuron )
+	{
+		return (neuron >> JUMPF_OFFSET) & JUMP_MASK;
+	}
+	inline neuron_type getjumps( neuron_type neuron )
+	{
+		return (neuron >> JUMPS_OFFSET) & JUMP_MASK;
+	}
+
 
 	
 private:
+
 	Bot *bud();
 
 	void move(field_type &f);
-	void eat(field_type &f);
+	void eat(field_type &f, neuron_type arg);
 	void turn(neuron_type arg);
-	void check(
+	bool check(
 		field_type const &f,
-		neuron_type action,
-		neuron_type jmp
+		neuron_type arg
 	);
-	void jump(neuron_type arg);
+	inline void jump(neuron_type jmp);
 
-	inline neuron_type random_neuron();
-	inline void incp();
+
+	neuron_type random_neuron();
+
+
+	inline void incp()
+	{
+		p = (p + 1) % BRAIN_SIZE;
+		return;
+	}
 	inline clever::PointI getto() const;
 	inline bool valid(
 		clever::PointI const &to,
 		field_type const &f
 	) const;
 	
+
+
 
 };
 

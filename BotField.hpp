@@ -22,9 +22,11 @@ struct BotField: public clever::HexagonField<Cell>
 	double
 		summen = 0.0,
 		grounden = 0.0,
+		airen = 0.0,
 		planten = 0.0,
 		boten = 0.0,
-		bodyen = 0.0;
+		bodyen = 0.0, 
+		mineralen = 0.0;
 
 
 
@@ -41,9 +43,9 @@ struct BotField: public clever::HexagonField<Cell>
 	void reset();
 	void update();
 
-	bool push(int x, int y, Bot *bot);
+	bool push(int x, int y, Bot *bot, bool calc = true);
 	bool push(int x, int y, Plant *plant);
-	void push(int x, int y);
+	void push(int x, int y, bool calc = true);
 
 	void random_fill(int cellcount);
 	void ravage_ground(double k);
@@ -57,6 +59,8 @@ private:
 
 	void update_environment_();
 	void update_entities_();
+
+	void calculate_energy_();
 
 	void set_cells_();
 	

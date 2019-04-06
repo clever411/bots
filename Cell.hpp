@@ -14,9 +14,12 @@ struct Cell
 {
 	static constexpr double const
 		DEFAULT_GROUND_ENERGY = 50.0,
-		SMOOTH_FACTOR = 0.5,
-		TOAIR_FACTOR = 0.01,
-		AIRSMOOTH_FACTOR = 0.75;
+		SMOOTH_FACTOR = 0.4,
+		TOAIR_FACTOR = 0.001,
+
+		DEFAULT_AIR_ENERGY = 20.0f,
+		AIRSMOOTH_FACTOR = 0.8;
+
 
 
 	double energy = 0.0, airenergy = 0.0;

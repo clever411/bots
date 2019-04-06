@@ -3,6 +3,7 @@
 #include <cmath>
 
 #include "Cell.hpp"
+#include "Mineral.hpp"
 
 
 
@@ -15,10 +16,25 @@ void Body::update(Cell &cell)
 	);
 	++age;
 
-	if( !(energy > delta) )
+	if( !(energy - delta > TOMINERAL_EDGE) )
 	{
-		cell.energy += energy;
+		if( !(energy > delta) )
+		{
+			cell.energy += energy;
+			cell.body = nullptr;
+			delete this;
+			return;
+		}
+
+		energy -= delta;
+		cell.energy += delta;
+
 		cell.body = nullptr;
+		if(cell.mineral)
+			cell.mineral->energy += energy;
+		else
+			cell.mineral = new Mineral{ energy };
+
 		delete this;
 		return;
 	}

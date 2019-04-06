@@ -153,19 +153,10 @@ void reduce_speed(double &s)
 // main
 int main( int argc, char *argv[] )
 {
-	// init
-	init_window();
-	init_field();
-	init_adapter();
-	init_font();
-	init_agelabel();
-	init_speedlabel();
-	init_enslabel();
+	init();
 	
 
 	
-	
-
 	// objects
 	bool
 		up = false,
@@ -187,17 +178,20 @@ int main( int argc, char *argv[] )
 		summen, grounden,
 		planten, boten;
 
-	static constexpr int const LABELS_COUNT = 7;
 	Text *labels[] = {
 		&agelabel, &speedlabel,
-		&summenlabel, &groundenlabel, &plantenlabel,
-		&botenlabel, &bodyenlabel
+		&summenlabel, &groundenlabel, &airenlabel,
+		&plantenlabel, &botenlabel,
+		&bodyenlabel, &mineralenlabel
 	};
 	statstring_type *strings[] = {
 		&agestring, &speedstring,
-		&summenstring, &groundenstring, &plantenstring,
-		&botenstring, &bodyenstring
+		&summenstring, &groundenstring, &airenstring,
+		&plantenstring, &botenstring,
+		&bodyenstring, &mineralenstring
 	};
+	static constexpr int const
+		LABELS_COUNT = sizeof(labels) / sizeof(decltype(labels[9]));
 
 	Stat stat;
 
@@ -226,6 +220,7 @@ int main( int argc, char *argv[] )
 				case Keyboard::C:
 					window.close();
 					continue;
+
 				case Keyboard::R:
 					field.reset();
 					age = 0;
@@ -235,16 +230,20 @@ int main( int argc, char *argv[] )
 					stat.write("resetstat.txt");
 					stat.reset();
 					break;
+
 				case Keyboard::F:
 					field.random_fill(100);
 					upfield = true;
 					break;
+
 				case Keyboard::G:
 					field.ravage_ground(0.1);
 					break;
+
 				case Keyboard::H:
 					field.random_bots(10);
 					break;
+
 				case Keyboard::I:
 					pos = adapter.cursorOn(
 						makep<float>(Mouse::getPosition(window))
@@ -262,6 +261,11 @@ int main( int argc, char *argv[] )
 							print(*cell);
 					}
 					break;
+
+				case Keyboard::M:
+					printer.changeMode();
+					break;
+
 				case Keyboard::Add: case Keyboard::Up:
 					if( updatespeed < 4000.0 )
 					{
@@ -270,6 +274,7 @@ int main( int argc, char *argv[] )
 						upspeed = true;
 					}
 					break;
+
 				case Keyboard::Subtract: case Keyboard::Down:
 					if(updatespeed > 0.15)
 					{
@@ -278,12 +283,15 @@ int main( int argc, char *argv[] )
 						upspeed = true;
 					}
 					break;
+
 				case Keyboard::Space:
 					up = !up;
 					stage = 0.0f;
 					break;
+
 				default:
 					break;
+
 				}
 				break;
 
@@ -345,13 +353,15 @@ int main( int argc, char *argv[] )
 					stage -= updateperiod;
 					field.update();
 					++age;
-					stat.add(
-						field.summen,
-						field.grounden,
-						field.planten,
-						field.boten,
-						field.bodyen
-					);
+					stat.add( {
+						(float)field.summen,
+						(float)field.grounden,
+						(float)field.airen,
+						(float)field.planten,
+						(float)field.boten,
+						(float)field.bodyen,
+						(float)field.mineralen
+					} );
 				}
 				while( stage >= updateperiod );
 				upfield = true;
@@ -376,24 +386,32 @@ int main( int argc, char *argv[] )
 		if( upfield )
 		{
 			summenstring =
-				"summ energy:   " +
+				"summ energy:    " +
 				to_string( int( round(field.summen) ) );
 
 			groundenstring =
-				"ground energy: " +
+				"ground energy:  " +
 				cutzero( to_string( int( field.grounden * 10.0 ) / 10.0 ) );
 
+			airenstring =
+				"air energy:     " +
+				cutzero( to_string( int( field.airen * 10.0 ) / 10.0 ) );
+
 			plantenstring =
-				"plants energy: " +
+				"plants energy:  " +
 				cutzero( to_string( int( field.planten * 10.0 ) / 10.0 ) );
 
 			botenstring =
-				"bots energy:   " +
+				"bots energy:    " +
 				cutzero( to_string( int( field.boten * 10.0 ) / 10.0 ) );
 
 			bodyenstring =
-				"bodyes energy: " +
+				"bodyes energy:  " +
 				cutzero( to_string( int( field.bodyen * 10.0 ) / 10.0 ) );
+
+			mineralenstring =
+				"mineral energy: " +
+				cutzero( to_string( int( field.mineralen * 10.0 ) / 10.0 ) );
 
 			adapter.update();
 			upfield = false;

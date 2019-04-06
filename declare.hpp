@@ -44,10 +44,13 @@ extern sf::Text
 	speedlabel,
 	summenlabel,
 	groundenlabel,
+	airenlabel,
 	plantenlabel,
 	botenlabel,
-	bodyenlabel;
+	bodyenlabel,
+	mineralenlabel;
 
+extern printer_type printer;
 extern adapter_type adapter;
 
 
@@ -62,9 +65,11 @@ extern statstring_type
 	speedstring,
 	summenstring,
 	groundenstring,
+	airenstring,
 	plantenstring,
 	botenstring,
-	bodyenstring;
+	bodyenstring,
+	mineralenstring;
 
 
 

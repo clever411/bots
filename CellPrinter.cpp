@@ -43,40 +43,59 @@ CellPrinter &CellPrinter::setSideSize(float a)
 CellPrinter &CellPrinter::set(Cell const &cell)
 {
 	double k;
-	if(cell.plant)
-	{
-		k = cell.plant->energy / Plant::MAX_ENERGY;
-		setFillColor( plantgrad_(k) );
-		return *this;
-	}
-
 	if(cell.bot)
 	{
 		k = (cell.bot->energy - cell.bot->deathedge()) / cell.bot->maxenergy();
-		setFillColor( botgrad_(k) );
+		setFillColor( botgrad(k) );
 		return *this;
 	}
 
 	if(cell.body)
 	{
-		k = cell.body->energy / (Bot::AGE_DEATH_TAX * 200);
-		setFillColor( bodygrad_(k) );
+		k = cell.body->energy / (Bot::DEATH_EDGE);
+		setFillColor( bodygrad(k) );
 		return *this;
 	}
 
-	k = cell.energy / Cell::DEFAULT_GROUND_ENERGY;
-	if(k > 1.0)
-		k = 1.0;
+	if(cell.plant)
+	{
+		k = cell.plant->energy / Plant::MAX_ENERGY;
+		setFillColor( plantgrad(k) );
+		return *this;
+	}
 
-	// double kair = cell.airenergy / 20.0;
-	// if(kair > 1.0)
-		// kair = 1.0;
+	if(cell.mineral)
+	{
+		k = cell.mineral->energy / (Body::TOMINERAL_EDGE);
+		setFillColor( mineralgrad(k) );
+		return *this;
+	}
 
-	// setFillColor( Color(
-		// 0xff, 0x00, 0x00, 0xff*kair
-	// ) );
+	switch(mode)
+	{
+	case groundmode:
+		k = cell.energy / Cell::DEFAULT_GROUND_ENERGY;
+		setFillColor( groundgrad(k) );
+		break;
 
-	setFillColor( emptygrad_(k) );
+	case airmode:
+		k = cell.airenergy / Cell::DEFAULT_AIR_ENERGY;
+		setFillColor( airgrad(k) );
+		break;
+	default:
+		throw std::logic_error("CellPrinter::set(): invalid mode");
+	}
+
+	return *this;
+}
+
+
+CellPrinter &CellPrinter::changeMode()
+{
+	if(mode == groundmode)
+		mode = airmode;
+	else
+		mode = groundmode;
 	return *this;
 }
 

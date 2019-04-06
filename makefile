@@ -1,7 +1,7 @@
 EXECUTABLE = main
 CFLAGS = -std=gnu++17 -c -O5 -DDEBUG -I./library
-LDFLAGS =
-LIBS = -lsfml-graphics -lsfml-system -lsfml-window -pthread
+LDFLAGS = -L./library/clever/lib
+LIBS = -lsfml-graphics -lsfml-system -lsfml-window -pthread -lclever-layout
 
 
 
@@ -66,11 +66,11 @@ Bot.o: Bot.cpp Bot.hpp BotField.hpp Cell.hpp Plant.hpp Body.hpp Mineral.hpp
 	g++ $(CFLAGS) -o Bot.o Bot.cpp
 
 
-Body.o: Body.cpp Body.hpp Cell.hpp
+Body.o: Body.cpp Body.hpp Cell.hpp Mineral.hpp
 	g++ $(CFLAGS) -o Body.o Body.cpp
 
 
-Mineral.o: Mineral.cpp Mineral.hpp Cell.hpp
+Mineral.o: Mineral.cpp Mineral.hpp Cell.hpp Plant.hpp
 	g++ $(CFLAGS) -o Mineral.o Mineral.cpp
 
 
@@ -81,10 +81,8 @@ CellPrinter.o: CellPrinter.cpp CellPrinter.hpp Cell.hpp Plant.hpp Bot.hpp Body.h
 	g++ $(CFLAGS) -o CellPrinter.o CellPrinter.cpp
 
 
-
 Gradient.o: Gradient.cpp Gradient.hpp
 	g++ $(CFLAGS) -o Gradient.o Gradient.cpp
-
 
 
 Stat.o: Stat.cpp Stat.hpp

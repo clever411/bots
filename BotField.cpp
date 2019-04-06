@@ -90,6 +90,7 @@ void BotField::update()
 {
 	update_environment_();
 	update_entities_();
+	calculate_energy_();
 	return;
 }
 
@@ -97,15 +98,17 @@ void BotField::update()
 
 
 // enter
-bool BotField::push(int x, int y, Bot *bot)
+bool BotField::push(int x, int y, Bot *bot, bool calc)
 {
 	auto *cell = &at(x, y);
-	if(cell->plant || cell->bot || cell->body)
+	if(cell->bot || cell->body)
 		return false;
 	bot->worldage = age;
 	bot->x = x;
 	bot->y = y;
 	cell->bot = bot;
+	if(calc)
+		calculate_energy_();
 	return true;
 }
 
@@ -115,15 +118,16 @@ bool BotField::push(int x, int y, Plant *plant)
 	if(cell->plant || cell->bot || cell->body)
 		return false;
 	cell->plant = plant;
-	planten += plant->energy;
-	summen += plant->energy;
+	calculate_energy_();
 	return true;
 }
 
-void BotField::push(int x, int y)
+void BotField::push(int x, int y, bool calc)
 {
 	auto &cell = at(x, y);
 	cell.energy = Cell::DEFAULT_GROUND_ENERGY;
+	if(calc)
+		calculate_energy_();
 	return;
 }
 
@@ -132,14 +136,16 @@ void BotField::random_fill(int cellcount)
 {
 	std::uniform_int_distribution<int>
 		widthdis(0, w-1), heightdis(0, h-1);
+
 	int x, y;
 	for(int i = 0; i < cellcount; ++i)
 	{
 		y = heightdis(dre);
 		x = widthdis(dre)*2 + (y%2 ? 1 : 0);
-		push(x, y);
+		push(x, y, false);
 	}
 
+	calculate_energy_();
 	return;
 }
 
@@ -147,12 +153,8 @@ void BotField::ravage_ground(double k)
 {
 	double delta;
 	for(auto b = begin(), e = end(); b != e; ++b)
-	{
-		delta = b->energy * k;
-		b->energy -= delta;
-		grounden -= delta;
-		summen -= delta;
-	}
+		b->energy *= k;
+	calculate_energy_();
 	return;
 }
 
@@ -167,10 +169,11 @@ void BotField::random_bots(int count)
 		bot->energy = bot->budprice();
 		y = heightdis(dre);
 		x = widthdis(dre)*2 + (y%2 ? 1 : 0);
-		if(push(x, y, bot))
+		if(push(x, y, bot, false))
 			bot = new Bot;
 	}
 	delete bot;
+	calculate_energy_();
 	return;
 }
 
@@ -209,11 +212,9 @@ void BotField::update_environment_()
 		p = getxy(b);
 
 		// to air
-		/*
-		 * delta = b->energy * Cell::TOAIR_FACTOR;
-		 * b->energy -= delta;
-		 * b->airenergy += delta;
-		 */
+		delta = b->energy * Cell::TOAIR_FACTOR;
+		b->energy -= delta;
+		b->airenergy += delta;
 
 		// to other
 		delta = b->energy * Cell::SMOOTH_FACTOR;
@@ -231,9 +232,8 @@ void BotField::update_environment_()
 	for(int i = 0; i < w*h; ++i)
 		d[i].energy += smoothf_.d[i];
 	
-	return;
 	
-	
+
 	// air
 	smoothf_.zeroize();
 	for(auto b = begin(), e = end(); b != e; ++b)
@@ -246,9 +246,9 @@ void BotField::update_environment_()
 		for(int i = 0; i < OFFSET_COUNT; ++i)
 		{
 			if(!valid(p, i))
-				b->airenergy += delta * ( b->airtemp / b->airtempenv );
+				b->airenergy += delta * b->airtemp / b->airtempenv;
 			else
-				smoothf_.neart(p, i) += delta * ( neart(p, i).airtemp / b->airtempenv );
+				smoothf_.neart(p, i) += delta * neart(p, i).airtemp / b->airtempenv;
 		}
 	}
 
@@ -301,6 +301,33 @@ void BotField::update_entities_()
 	return;
 }
 
+
+void BotField::calculate_energy_()
+{
+	grounden = airen =
+		planten = boten =
+		bodyen = mineralen = 0.0;
+
+	for(auto b = begin(), e = end(); b != e; ++b)
+	{
+		grounden += b->energy;
+		airen += b->airenergy;
+
+		if(b->plant)
+			planten += b->plant->energy;
+		if(b->bot)
+			boten += b->bot->energy;
+		if(b->body)
+			bodyen += b->body->energy;
+		if(b->mineral)
+			mineralen += b->mineral->energy;
+	}
+
+	summen = grounden + airen + planten + boten + bodyen + mineralen;
+	return;
+}
+
+
 void BotField::set_cells_()
 {
 	PointI p;
@@ -309,7 +336,7 @@ void BotField::set_cells_()
 		p = getxy(b);
 		*b = Cell();
 		b->temp = 1.0 + pow(double(p.y), 2.0);
-		b->airtemp = 1.0 + pow(double(h-1-p.y), 2.0);
+		b->airtemp = 1.0 + pow(double(h-1-p.y), 3.0);
 	}
 
 	for(auto b = begin(), e = end(); b != e; ++b)

@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "Cell.hpp"
+#include "Plant.hpp"
 
 
 using namespace std;
@@ -13,21 +14,28 @@ using namespace std;
 
 void Mineral::update(Cell &cell)
 {
-	double delta = min(
-		MIN_DISSOLUTION,
-		energy * DISSOLUTION_FACTOR
-	);
+	double const
+		toairdelta = max(
+			MIN_DISSOLUTION,
+			energy * DISSOLUTION_FACTOR
+		),
+		fromplantdelta = cell.plant ?
+			cell.plant->energy * FROM_PLANT_FACTOR :
+			0.0;
 
-	if( !(energy > delta) )
+	if( !(energy + fromplantdelta - toairdelta > 0) )
 	{
-		cell.airenergy += delta;
+		cell.airenergy += toairdelta;
 		cell.mineral = nullptr;
 		delete this;
 		return;
 	}
 
-	energy -= delta;
-	cell.airenergy += delta;
+	if(cell.plant)
+		cell.plant->energy -= fromplantdelta;
+
+	energy += fromplantdelta - toairdelta;
+	cell.airenergy += toairdelta;
 
 	return;
 }

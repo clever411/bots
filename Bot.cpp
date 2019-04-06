@@ -20,6 +20,7 @@ using namespace std;
 Bot::Bot()
 {
 	random_fill_brain();
+	return;
 }
 
 void Bot::update(field_type &f)
@@ -27,8 +28,9 @@ void Bot::update(field_type &f)
 	++age;
 	++worldage;
 
+
 	auto &cell = f.at(x, y);
-	double delta = stepprice() + age * agesteptax();
+	double const delta = stepprice() + age * agesteptax();
 
 		// death
 	if( !( energy - delta > deathedge() ) )
@@ -72,14 +74,9 @@ void Bot::update(field_type &f)
 	
 
 	// on brain
-	int count = 0;
-	neuron_type action, jmp;
-	while(count < REPEAT_COMMAND_COUNT)
+	for(int count = 0; count < REPEAT_COMMAND_COUNT; ++count);
 	{
-		action = brain[p] & ACTION_MASK;
-		jmp = brain[p] >> 4;
-
-		switch(action)
+		switch(getaction(brain[p]))
 		{
 		case NUL:
 		{
@@ -93,30 +90,30 @@ void Bot::update(field_type &f)
 
 		case MOVE:
 			move(f);
-			jump(jmp);
+			jump( getjumpf( brain[p] ) );
 			return;
 
 		case EAT:
-			eat(f);
-			jump(jmp);
+			eat(f, getarg(brain[p]) );
+			jump( getjumpf( brain[p] ) );
 			return;
 
-		case TURN: case TURN+1: case TURN+2:
-			turn(action-TURN);
-			jump(jmp);
+		case TURN:
+			turn( getarg( brain[p] ) );
+			jump( getjumpf( brain[p] ) );
 			break;
 
-		case CHECK: case CHECK+1:
-		case CHECK+2: case CHECK+3:
-			check(f, action-CHECK, jmp);
+		case CHECK:
+			if( check(f, getarg(brain[p])) )
+				jump( getjumpf( brain[p] ) );
+			else
+				jump( getjumps( brain[p] ) );
 			break;
 
 		default:
 			throw 1;
 
 		}
-
-		++count;
 	}
 
 
@@ -204,25 +201,96 @@ void Bot::move(field_type &f)
 	return;
 }
 
-void Bot::eat(field_type &f)
+void Bot::eat(field_type &f, neuron_type arg)
 {
 	auto &toc = f.neart(x, y, dir);
-	if(!toc.plant)
-		return;
+	switch(arg)
+	{
+	case 0:
+		if(toc.plant)
+		{
+			auto &plant = *toc.plant;
+			if( !( plant.energy > maxenergy() - energy ) )
+			{
+				energy += plant.energy;
+				delete toc.plant;
+				toc.plant = nullptr;
+			}
+			else
+			{
+				double const delta = maxenergy() - energy;
+				plant.energy -= delta;
+				energy += delta;
+			}
+		}
+		break;
 
-	auto &plant = *toc.plant;
-	if( !( plant.energy > maxenergy() - energy ) )
-	{
-		energy += plant.energy;
-		delete toc.plant;
-		toc.plant = nullptr;
+	case 1:
+		if(toc.body)
+		{
+			static int COUNT_EAT_BODY = 0;
+			++COUNT_EAT_BODY;
+			if(COUNT_EAT_BODY % 100 == 0)
+				cout << "Body: " << COUNT_EAT_BODY/100 << " * 100" << endl;
+			auto &body = *toc.body;
+			if( !( body.energy > maxenergy() - energy ) )
+			{
+				energy += body.energy;
+				delete toc.body;
+				toc.body = nullptr;
+			}
+			else
+			{
+				double const delta = maxenergy() - energy;
+				body.energy -= delta;
+				energy += delta;
+			}
+		}
+		break;
+
+	case 2:
+		if(toc.mineral)
+		{
+			static int COUNT_EAT_MINERAL = 0;
+			++COUNT_EAT_MINERAL;
+			if(COUNT_EAT_MINERAL % 1000 == 0)
+				cout << "Mineral: " << COUNT_EAT_MINERAL/1000 << " * 1000" << endl;
+			auto &mineral = *toc.mineral;
+			double const delta = min(
+				MINERAL_TAKE,
+				maxenergy() - energy
+			);
+			if( !(mineral.energy > delta) )
+			{
+				energy += mineral.energy;
+				delete toc.mineral;
+				toc.mineral = nullptr;
+			}
+			else
+			{
+				mineral.energy -= delta;
+				energy += delta;
+			}
+		}
+		break;
+
+	case 3:
+		{
+			static int COUNT_EAT_AIR = 0;
+			++COUNT_EAT_AIR;
+			if(COUNT_EAT_AIR % 10000 == 0)
+				cout << "Air: " << COUNT_EAT_AIR/10000 << " * 10000" << endl;
+			double const delta = toc.airenergy * AIR_TAKE_FACTOR;
+			toc.airenergy -= delta;
+			energy += delta;
+		}
+		break;
+
+	default:
+		throw 1;
 	}
-	else
-	{
-		double const delta = maxenergy() - energy;
-		plant.energy -= delta;
-		energy += delta;
-	}
+
+
 
 	return;
 }
@@ -252,67 +320,71 @@ void Bot::turn(neuron_type arg)
 	return;
 }
 
-void Bot::check(field_type const &f, neuron_type action, neuron_type jmp)
+bool Bot::check(field_type const &f, neuron_type arg)
 {
-	auto to = getto();
-	auto const &toc = f.att(to);
+	auto const &toc = f.neart(x, y, dir);
 
-	bool is = false;
-	switch(action)
+	switch(arg)
 	{
 	case 0:
-		is = !toc.bot && !toc.body;
-		break;
+		return !toc.bot && !toc.body;
 	case 1:
-		is = toc.plant;
-		break;
+		return toc.plant;
 	case 2:
-		is = toc.bot;
-		break;
+		return toc.bot;
 	case 3:
-		is = toc.body;
-		break;
+		return toc.body;
+	case 4:
+		return toc.mineral;
 	default:
 		throw 1;
 	}
-
-	if(is)
-		jump(jmp);
-	else
-		jump(jmp >> 6);
-	
-	return;
 }
 
-void Bot::jump(neuron_type jmp)
+inline void Bot::jump(neuron_type jmp)
 {
-	p = jmp & JUMP_MASK;
+	p = jmp;
 	return;
 }
 
 
 
 // private help
-inline Bot::neuron_type Bot::random_neuron()
+Bot::neuron_type Bot::random_neuron()
 {
-	static constexpr neuron_type NEURONS[] = {
-		NUL, EAT, MOVE,
-		TURN, TURN+1, TURN+2,
-		CHECK, CHECK+1, CHECK+2, CHECK+3
+	static constexpr neuron_type ACTIONS[] = {
+		NUL,
+		MOVE,
+
+		EAT,
+		EAT | (1 << ARG_OFFSET),
+		EAT | (2 << ARG_OFFSET),
+		EAT | (3 << ARG_OFFSET),
+
+		TURN,
+		TURN | (1 << ARG_OFFSET),
+		TURN | (2 << ARG_OFFSET),
+
+		CHECK,
+		CHECK | (1 << ARG_OFFSET),
+		CHECK | (2 << ARG_OFFSET),
+		CHECK | (3 << ARG_OFFSET),
+		CHECK | (4 << ARG_OFFSET)
 	};
+
 	static constexpr int const
-		NEURONS_SIZE = sizeof(NEURONS) / sizeof(neuron_type);
+		ACTIONS_SIZE = sizeof(ACTIONS) / sizeof(neuron_type);
+
 	static std::uniform_int_distribution<int>
-		neurondis(0, NEURONS_SIZE-1),
+		actiondis(0, ACTIONS_SIZE-1),
 		jumpdis(0, BRAIN_SIZE-1);
 
-	return NEURONS[ neurondis(dre) ] + (jumpdis(dre) << 6) + (jumpdis(dre) << 12);
-}
 
-inline void Bot::incp()
-{
-	p = (p + 1) % BRAIN_SIZE;
-	return;
+
+	return
+		( jumpdis(dre) << JUMPS_OFFSET ) |
+		( jumpdis(dre) << JUMPF_OFFSET ) |
+		( ACTIONS[ actiondis(dre) ] << ACTION_OFFSET );
 }
 
 inline PointI Bot::getto() const
