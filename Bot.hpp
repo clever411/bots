@@ -5,6 +5,8 @@
 
 #include <clever/Point.hpp>
 
+#include "BotGen.hpp"
+
 
 
 
@@ -19,6 +21,7 @@ extern std::uniform_real_distribution<double> realdis;
 
 // main
 struct BotField;
+struct Gen;
 
 struct Bot
 {
@@ -28,22 +31,14 @@ struct Bot
 
 
 	// body
-	static constexpr int const
-		CHARACTERS_COUNT = 5;
-
 	static constexpr double const
 		MAX_ENERGY = 1000.0,
 		DEATH_EDGE = 200.0,
-		STEP_PRICE = 0.5,
-		AGE_STEP_TAX = 0.01,
-		AGE_DEATH_TAX = 0.5,
+		STEP_PRICE = 0.25,
+		AGE_STEP_TAX = 0.005,
+		AGE_DEATH_TAX = 0.25,
 		BUD_REQ = 600.0,
-		BUD_PRICE = 400.0,
-		MAX_MUTATION = 0.2,
-		MUTATION_POWER = 0.02,
-
-		MINERAL_TAKE = 25.0,
-		AIR_TAKE_FACTOR = 0.5;
+		BUD_PRICE = 400.0;
 
 
 	// brain
@@ -75,11 +70,7 @@ struct Bot
 	double energy = BUD_PRICE;
 	int x = 0, y = 0, dir = 0;
 	int worldage = 0, age = 0, generation = 0;
-
-	float
-		steppricek = 1.0f, agesteptaxk = 1.0f,
-		maxenergyk = 1.0f,
-		budreqk = 1.0f, budpricek = 1.0f;
+	Gen gen;
 
 	neuron_type brain[BRAIN_SIZE] = {
 		// CHECK,
@@ -101,27 +92,27 @@ struct Bot
 
 	inline double stepprice() const
 	{
-		return STEP_PRICE * (2.0 - steppricek);
+		return STEP_PRICE;
 	}
 	inline double agesteptax() const
 	{
-		return AGE_STEP_TAX * (2.0 - agesteptaxk);
+		return AGE_STEP_TAX;
 	}
 	inline double maxenergy() const
 	{
-		return MAX_ENERGY * maxenergyk;
+		return MAX_ENERGY;
 	}
 	inline double budreq() const
 	{
-		return BUD_REQ * (2.0 - budreqk);
+		return BUD_REQ;
 	}
 	inline double budprice() const
 	{
-		return BUD_PRICE * (2.0 - budpricek);
+		return BUD_PRICE;
 	}
 	inline double deathedge() const
 	{
-		return AGE_DEATH_TAX * age;
+		return DEATH_EDGE + age * AGE_DEATH_TAX;
 	}
 
 
@@ -150,7 +141,7 @@ private:
 	Bot *bud();
 
 	void move(field_type &f);
-	void eat(field_type &f, neuron_type arg);
+	bool eat(field_type &f, neuron_type arg);
 	void turn(neuron_type arg);
 	bool check(
 		field_type const &f,

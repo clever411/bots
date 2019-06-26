@@ -26,15 +26,6 @@ using namespace std;
 
 
 // functions
-void print(Cell const &cell)
-{
-	cout << "it's empty\n"
-		"energy: " << cell.energy << "\n"
-		"------------------------------\n\n";
-
-	return;
-}
-
 void print(Plant const &plant)
 {
 	cout << "it's plant\n"
@@ -49,13 +40,10 @@ void print(Bot const &bot)
 		"energy:     " << bot.energy      << "\n"
 		"age:        " << bot.age         << "\n"
 		"generation: " << bot.generation  << "\n\n"
-		"step price: " << bot.steppricek  << "\n"
-		"age tax:    " << bot.agesteptaxk << "\n"
-		"max energy: " << bot.maxenergyk  << "\n"
-		"bud req:    " << bot.budreqk     << "\n"
-		"bud price:  " << bot.budpricek   << "\n\n"
-		"brain:";
+		"gen:\n";
+	bot.gen.print(cout, "    ") << "\n\nbrain:";
 
+	// print brain
 	for(int i = 0; i < Bot::BRAIN_SIZE; ++i)
 	{
 		if(i % 8 == 0)
@@ -120,6 +108,35 @@ void print(Body const &body)
 	return;
 }
 
+void print(Mineral const &mineral)
+{
+	cout << "it's mineral\n"
+		"energy: " << mineral.energy << "\n"
+		"------------------------------\n\n";
+
+	return;
+}
+
+void print(Cell const &cell)
+{
+	if(cell.bot)
+		print(*cell.bot);
+	else if(cell.body)
+		print(*cell.body);
+	else if(cell.plant)
+		print(*cell.plant);
+	else if(cell.mineral)
+		print(*cell.mineral);
+	else
+		cout << "it's empty\n"
+			"energy: " << cell.energy << "\n"
+			"------------------------------\n\n";
+
+	return;
+}
+
+
+
 void increase_speed(double &s)
 {
 	if( s > 99.5 )
@@ -165,7 +182,7 @@ int main( int argc, char *argv[] )
 		upspeed = true,
 		writestat = false;
 
-	double updatespeed = 1.0f; // count per second
+	double updatespeed = 100.0f; // count per second
 	double updateperiod = 1.0 / updatespeed;
 	double stage = 0.0f;
 
@@ -251,14 +268,7 @@ int main( int argc, char *argv[] )
 					if(field.isValid(pos))
 					{
 						cell = &field.at(pos);
-						if(cell->bot)
-							print(*cell->bot);
-						else if(cell->body)
-							print(*cell->body);
-						else if(cell->plant)
-							print(*cell->plant);
-						else
-							print(*cell);
+						print(field.at(pos));
 					}
 					break;
 

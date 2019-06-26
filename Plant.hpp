@@ -10,10 +10,10 @@ struct Cell;
 struct Plant
 {
 	static constexpr double const
-		TAKE_FROM_EATH = 0.1,
+		TAKE_FROM_EATH = 0.5,
 		TAKE_TO_SELF = 0.05,
-		MAX_ENERGY = 100.0,
-		BURN_CHANCE = 0.002;
+		MAX_ENERGY = 1000.0,
+		BURN_CHANCE = 0.00005;
 
 	double energy = 0.0;
 

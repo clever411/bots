@@ -18,12 +18,9 @@ void Mineral::update(Cell &cell)
 		toairdelta = max(
 			MIN_DISSOLUTION,
 			energy * DISSOLUTION_FACTOR
-		),
-		fromplantdelta = cell.plant ?
-			cell.plant->energy * FROM_PLANT_FACTOR :
-			0.0;
+		);
 
-	if( !(energy + fromplantdelta - toairdelta > 0) )
+	if( !(energy - toairdelta > 0) )
 	{
 		cell.airenergy += toairdelta;
 		cell.mineral = nullptr;
@@ -31,10 +28,7 @@ void Mineral::update(Cell &cell)
 		return;
 	}
 
-	if(cell.plant)
-		cell.plant->energy -= fromplantdelta;
-
-	energy += fromplantdelta - toairdelta;
+	energy -= toairdelta;
 	cell.airenergy += toairdelta;
 
 	return;

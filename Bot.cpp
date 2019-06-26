@@ -16,6 +16,13 @@ using namespace std;
 
 
 
+// objects
+uniform_int_distribution<int> dirdis(0, BotField::OFFSET_COUNT);
+
+
+
+
+
 // core
 Bot::Bot()
 {
@@ -56,24 +63,39 @@ void Bot::update(field_type &f)
 		) > realdis(dre)
 	)
 	{
-		auto to = getto();
-		if(valid(to, f))
+		PointI from = PointI{x, y}, to;
+		int choice;
+		int count = -1;
+		do
+		{
+			choice = dirdis(dre);
+			to = { from.x + f.OFFSET[choice][0], from.y + f.OFFSET[choice][1] };
+			++count;
+		}
+		while(
+			( !valid(to, f) ||
+			  f.att(to).bot ||
+			  f.att(to).body ) &&
+			count < REPEAT_COMMAND_COUNT
+		);
+
+
+		if(count != REPEAT_COMMAND_COUNT)
 		{
 			f.correct(to);
-			auto &toc = f.at(to);
-			if(!toc.bot && !toc.body)
-			{
-				toc.bot = bud();
-				toc.bot->x = to.x;
-				toc.bot->y = to.y;
-				return;
-			}
+			Bot *bot = bud();
+			bot->x = to.x;
+			bot->y = to.y;
+			f.at(to).bot = bot;
+
+			return;
 		}
 	}
 	
 	
 
 	// on brain
+	bool success;
 	for(int count = 0; count < REPEAT_COMMAND_COUNT; ++count);
 	{
 		switch(getaction(brain[p]))
@@ -94,8 +116,10 @@ void Bot::update(field_type &f)
 			return;
 
 		case EAT:
-			eat(f, getarg(brain[p]) );
+			success = eat( f, getarg(brain[p]) );
 			jump( getjumpf( brain[p] ) );
+			if(!success)
+				break;
 			return;
 
 		case TURN:
@@ -134,49 +158,22 @@ void Bot::random_fill_brain()
 Bot *Bot::bud()
 {
 	static uniform_int_distribution<int>
-		mutdis(0, CHARACTERS_COUNT-1),
 		braindis(0, BRAIN_SIZE-1);
 
 	// burn
 	Bot *child = new Bot(*this);
 	child->age = 0;
 	++child->generation;
+	child->dir = dirdis(dre);
+	child->p = 0;
 	double const delta = budprice();
 	energy -= delta;
 	child->energy = delta;
 
 
-
-	// mutation
-	float *characts[ CHARACTERS_COUNT ] = {
-		&child->steppricek, &child->agesteptaxk,
-		&child->maxenergyk,
-		&child->budreqk, &child->budpricek
-	};
-
-	int from, to;
-	do
-	{
-		from = mutdis(dre);
-	}
-	while(
-		*characts[from] - MUTATION_POWER <= 1.0 - MAX_MUTATION 
-	);
-
-	do
-	{
-		to = mutdis(dre);
-	}
-	while(
-		to == from ||
-		*characts[to] + MUTATION_POWER >= 1.0 + MAX_MUTATION 
-	);
-
-	*characts[from] -= MUTATION_POWER;
-	*characts[to] += MUTATION_POWER;
-
+	// mutate
 	child->brain[ braindis(dre) ] = random_neuron();
-
+	child->gen.mutate();
 
 
 	return child;
@@ -201,7 +198,7 @@ void Bot::move(field_type &f)
 	return;
 }
 
-void Bot::eat(field_type &f, neuron_type arg)
+bool Bot::eat(field_type &f, neuron_type arg)
 {
 	auto &toc = f.neart(x, y, dir);
 	switch(arg)
@@ -210,7 +207,8 @@ void Bot::eat(field_type &f, neuron_type arg)
 		if(toc.plant)
 		{
 			auto &plant = *toc.plant;
-			if( !( plant.energy > maxenergy() - energy ) )
+			double take = min(maxenergy() - energy, gen.plant());
+			if( !( plant.energy > take ) )
 			{
 				energy += plant.energy;
 				delete toc.plant;
@@ -218,12 +216,12 @@ void Bot::eat(field_type &f, neuron_type arg)
 			}
 			else
 			{
-				double const delta = maxenergy() - energy;
-				plant.energy -= delta;
-				energy += delta;
+				plant.energy -= take;
+				energy += take;
 			}
+			return true;
 		}
-		break;
+		return false;
 
 	case 1:
 		if(toc.body)
@@ -232,8 +230,13 @@ void Bot::eat(field_type &f, neuron_type arg)
 			++COUNT_EAT_BODY;
 			if(COUNT_EAT_BODY % 100 == 0)
 				cout << "Body: " << COUNT_EAT_BODY/100 << " * 100" << endl;
+
 			auto &body = *toc.body;
-			if( !( body.energy > maxenergy() - energy ) )
+			double const delta = min(
+				maxenergy() - energy,
+				gen.body()
+			);
+			if( !( body.energy > delta ) )
 			{
 				energy += body.energy;
 				delete toc.body;
@@ -241,12 +244,12 @@ void Bot::eat(field_type &f, neuron_type arg)
 			}
 			else
 			{
-				double const delta = maxenergy() - energy;
 				body.energy -= delta;
 				energy += delta;
 			}
+			return true;
 		}
-		break;
+		return false;
 
 	case 2:
 		if(toc.mineral)
@@ -255,10 +258,11 @@ void Bot::eat(field_type &f, neuron_type arg)
 			++COUNT_EAT_MINERAL;
 			if(COUNT_EAT_MINERAL % 1000 == 0)
 				cout << "Mineral: " << COUNT_EAT_MINERAL/1000 << " * 1000" << endl;
+
 			auto &mineral = *toc.mineral;
 			double const delta = min(
-				MINERAL_TAKE,
-				maxenergy() - energy
+				maxenergy() - energy,
+				gen.mineral()
 			);
 			if( !(mineral.energy > delta) )
 			{
@@ -271,8 +275,9 @@ void Bot::eat(field_type &f, neuron_type arg)
 				mineral.energy -= delta;
 				energy += delta;
 			}
+			return true;
 		}
-		break;
+		return false;
 
 	case 3:
 		{
@@ -280,19 +285,17 @@ void Bot::eat(field_type &f, neuron_type arg)
 			++COUNT_EAT_AIR;
 			if(COUNT_EAT_AIR % 10000 == 0)
 				cout << "Air: " << COUNT_EAT_AIR/10000 << " * 10000" << endl;
-			double const delta = toc.airenergy * AIR_TAKE_FACTOR;
-			toc.airenergy -= delta;
+
+			auto &to = f.at(x, y);
+			double const delta = to.airenergy * gen.air();
+			to.airenergy -= delta;
 			energy += delta;
 		}
-		break;
+		return true;
 
 	default:
 		throw 1;
 	}
-
-
-
-	return;
 }
 
 void Bot::turn(neuron_type arg)

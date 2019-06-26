@@ -11,8 +11,7 @@ struct Mineral
 {
 	static constexpr double const
 		MIN_DISSOLUTION = 0.001,
-		DISSOLUTION_FACTOR = 0.0001,
-		FROM_PLANT_FACTOR = 0.01;
+		DISSOLUTION_FACTOR = 0.0001;
 
 	double energy;
 
