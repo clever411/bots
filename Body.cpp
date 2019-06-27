@@ -16,31 +16,19 @@ void Body::update(Cell &cell)
 	);
 	++age;
 
-	if( !(energy - delta > TOMINERAL_EDGE) )
+	if(!cell.mineral)
+		cell.mineral = new Mineral;
+
+	if( !(energy > delta) ) // || !(energy - delta > TOMINERAL_EDGE) )
 	{
-		if( !(energy > delta) )
-		{
-			cell.energy += energy;
-			cell.body = nullptr;
-			delete this;
-			return;
-		}
-
-		energy -= delta;
-		cell.energy += delta;
-
+		cell.mineral->energy += energy;
 		cell.body = nullptr;
-		if(cell.mineral)
-			cell.mineral->energy += energy;
-		else
-			cell.mineral = new Mineral{ energy };
-
 		delete this;
 		return;
 	}
 
 	energy -= delta;
-	cell.energy += delta;
+	cell.mineral->energy += delta;
 
 	return;
 }

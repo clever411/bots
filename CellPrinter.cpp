@@ -66,7 +66,8 @@ CellPrinter &CellPrinter::set(Cell const &cell)
 
 	if(cell.mineral)
 	{
-		k = cell.mineral->energy / (Body::TOMINERAL_EDGE);
+		// k = cell.mineral->energy / (Body::TOMINERAL_EDGE);
+		k = cell.mineral->energy / 100.0;
 		setFillColor( mineralgrad(k) );
 		return *this;
 	}

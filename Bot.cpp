@@ -95,7 +95,6 @@ void Bot::update(field_type &f)
 	
 
 	// on brain
-	bool success;
 	for(int count = 0; count < REPEAT_COMMAND_COUNT; ++count);
 	{
 		switch(getaction(brain[p]))
@@ -103,8 +102,8 @@ void Bot::update(field_type &f)
 		case NUL:
 		{
 			int i = 0;
-			for(; brain[p] & JUMP_MASK == NUL && i != BRAIN_SIZE; ++i)
-				incp();
+			for(; getaction(brain[p]) == NUL && i != BRAIN_SIZE; ++i)
+				p = (p + 1) % BRAIN_SIZE;
 			if(i == BRAIN_SIZE)
 				return;
 			break;
@@ -112,26 +111,24 @@ void Bot::update(field_type &f)
 
 		case MOVE:
 			move(f);
-			jump( getjumpf( brain[p] ) );
+			p = getjumpf( brain[p] );
 			return;
 
 		case EAT:
-			success = eat( f, getarg(brain[p]) );
-			jump( getjumpf( brain[p] ) );
-			if(!success)
-				break;
+			eat( f, getarg(brain[p]) );
+			p = getjumpf( brain[p] );
 			return;
 
 		case TURN:
 			turn( getarg( brain[p] ) );
-			jump( getjumpf( brain[p] ) );
+			p = getjumpf( brain[p] );
 			break;
 
 		case CHECK:
 			if( check(f, getarg(brain[p])) )
-				jump( getjumpf( brain[p] ) );
+				p = getjumpf( brain[p] );
 			else
-				jump( getjumps( brain[p] ) );
+				p = getjumps( brain[p] );
 			break;
 
 		default:
@@ -228,8 +225,8 @@ bool Bot::eat(field_type &f, neuron_type arg)
 		{
 			static int COUNT_EAT_BODY = 0;
 			++COUNT_EAT_BODY;
-			if(COUNT_EAT_BODY % 100 == 0)
-				cout << "Body: " << COUNT_EAT_BODY/100 << " * 100" << endl;
+			if(COUNT_EAT_BODY % 1000 == 0)
+				cout << "Body: " << COUNT_EAT_BODY/1000 << " * 1000" << endl;
 
 			auto &body = *toc.body;
 			double const delta = min(
@@ -342,12 +339,6 @@ bool Bot::check(field_type const &f, neuron_type arg)
 	default:
 		throw 1;
 	}
-}
-
-inline void Bot::jump(neuron_type jmp)
-{
-	p = jmp;
-	return;
 }
 
 

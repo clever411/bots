@@ -9,9 +9,6 @@
 #include <clever/Type.hpp>
 
 
-// #include <clever/Field.hpp>
-
-
 
 
 
@@ -26,6 +23,20 @@ namespace clever
 	
 struct SquareFieldTag {};
 struct HexagonFieldTag {};
+
+/*
+ * Printer — это класс, который должен содержать следующие 
+ * функции:
+ * 	setPosition( PointF ); — установить позицию,
+ * 		устанавливается притом центр, где должно быть
+ * 		напечатана фигура
+ * 	setSideSize( float ); — установить размер стороны: для
+ * 		квадрата — это, собственно, размер его стороны;
+ * 		для шестиугольника — это радиус описанной 
+ * 		окружности
+ * 	set( value_type ); — установить значение, из которого
+ * 		должен определяться вид напечатанного
+ */
 
 template<class FieldType, class Printer, class FieldTag>
 class FieldAdapter: public sf::Transformable, public sf::Drawable

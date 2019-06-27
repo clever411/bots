@@ -1,5 +1,8 @@
+#include <algorithm>
 #include <iostream>
 #include <chrono>
+#include <list>
+#include <set>
 
 #include <clever/HelpFunction.hpp>
 #include <clever/Stopwatch.hpp>
@@ -36,61 +39,151 @@ void print(Plant const &plant)
 
 void print(Bot const &bot)
 {
+	static auto const
+		acttostr = [](Bot::neuron_type neuron)->string
+		{
+			string str;
+			switch(Bot::getaction(neuron))
+			{
+			case Bot::NUL:
+				return "NUL";
+			case Bot::MOVE:
+				return "MOV";
+			case Bot::EAT:
+				str = "EAT ";
+				switch(Bot::getarg(neuron))
+				{
+				case 0: // plant
+					str.push_back('P');
+					return str;
+				case 1: // body
+					str.push_back('B');
+					return str;
+				case 2: // minerals
+					str.push_back('M');
+					return str;
+				case 3: // air
+					str.push_back('A');
+					return str;
+				default:
+					throw logic_error("print(Bot) -> switch::EAT::switch");
+				}
+			case Bot::CHECK:
+				str = "CHK ";
+				switch(Bot::getarg(neuron))
+				{
+				case 0: // empty
+					str.push_back('E');
+					return str;
+				case 1: // plant
+					str.push_back('P');
+					return str;
+				case 2: // bot
+					str += "BT";
+					return str;
+				case 3: // body
+					str += "BD";
+					return str;
+				case 4: // mineral
+					str.push_back('M');
+					return str;
+				default:
+					throw logic_error("print(Bot) -> switch::Bot::CHECK: ");
+				}
+			case Bot::TURN:
+				str = "TRN ";
+				switch(Bot::getarg(neuron))
+				{
+				case 0:
+					str.push_back('L');
+					return str;
+				case 1:
+					str.push_back('R');
+					return str;
+				case 2:
+					str += "RD";
+					return str;
+				default:
+					throw logic_error("print(Bot) switch::Bot::TURN");
+				}
+			default:
+				throw logic_error("print(Bot) switch");
+			}
+		};
+
+
+
+	// main
 	cout << "it's bot\n"
 		"energy:     " << bot.energy      << "\n"
 		"age:        " << bot.age         << "\n"
 		"generation: " << bot.generation  << "\n\n"
 		"gen:\n";
-	bot.gen.print(cout, "    ") << "\n\nbrain:";
+	bot.gen.print(cout, "    ") << "\n\n";
+
+
 
 	// print brain
-	for(int i = 0; i < Bot::BRAIN_SIZE; ++i)
+	cout << "brain" << endl;
+
+	list<int> row = { 0 };
+	set<int> was;
+
+	string str;
+	bool notempty = true;
+	while(notempty)
 	{
-		if(i % 8 == 0)
+		notempty = false;
+		int count = row.size();
+		for(auto b = row.begin(); count; --count, ++b)
 		{
-			cout << '\n';
-			if(!i)
-				cout << fills("m)", 4);
-			else if(i%16 || i/16 < 2)
-				cout << fills("", 4);
+			static constexpr int const CFILLS = 18;
+
+			if(*b < 0)
+			{
+				cout << fills("", CFILLS);
+				continue;
+			}
+
+			if(was.find(*b) != was.end())
+			{
+				cout << fills("end", CFILLS);
+				*b = -1;
+				continue;
+			}
+
+			notempty = true;
+			was.insert(*b);
+			str = to_string(*b) + " " +
+				acttostr( bot.brain[*b] ) + " ";
+
+			if(bot.getaction( bot.brain[*b] ) == Bot::NUL) 
+			{
+				str += to_string(++*b);
+			}
+			else if(bot.getaction( bot.brain[*b] ) == Bot::CHECK)
+			{
+				str += to_string( bot.getjumpf( bot.brain[*b] ) ) + "," +
+					to_string( bot.getjumps( bot.brain[*b] ) );
+				row.push_back(int( bot.getjumps( bot.brain[*b] ) ));
+				*b = bot.getjumpf( bot.brain[*b] );
+			}
 			else
-				cout << fills(
-					to_string(i/16 - 2) + ")",
-					4
-				);
+			{
+				str += to_string( bot.getjumpf( bot.brain[*b] ) );
+				*b = bot.getjumpf( bot.brain[*b] );
+			}
+
+			cout << fills(str, CFILLS);
 		}
 
-		auto action = bot.brain[i];
-		action &= Bot::JUMP_MASK;
-		switch(action)
-		{
-		case Bot::NUL:
-			cout << fills("NUL", 10);
-			break;
-		case Bot::MOVE:
-			cout << fills("MOVE", 10);
-			break;
-		case Bot::EAT:
-			cout << fills("EAT", 10);
-			break;
-		case Bot::TURN:
-			cout << fills(
-				"TURN(" + to_string(action-Bot::TURN) + ")",
-				10
-			);
-			break;
-		case Bot::CHECK:
-			cout << fills(
-				"TURN(" + to_string(action-Bot::CHECK) + ")",
-				10
-			);
-			break;
-		}
+		cout << endl;
 	}
 
+
+
+	// other
 	cout << "\n"
-		"addr: " << &bot << "\n"
-		"wage: " << bot.worldage   << "\n"
 		"p:    " << bot.p   << "\n"
 		"dir:  " << bot.dir << "\n"
 		"------------------------------\n\n";
@@ -259,6 +352,7 @@ int main( int argc, char *argv[] )
 
 				case Keyboard::H:
 					field.random_bots(10);
+					upfield = true;
 					break;
 
 				case Keyboard::I:
