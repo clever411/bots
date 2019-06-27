@@ -13,7 +13,7 @@ struct Mineral
 		MIN_DISSOLUTION = 0.001,
 		DISSOLUTION_FACTOR = 0.0001;
 
-	double energy;
+	double energy = 0.0;
 
 	void update(Cell &cell);
 

@@ -117,19 +117,19 @@ struct Bot
 
 
 
-	inline neuron_type getaction( neuron_type neuron )
+	static inline neuron_type getaction( neuron_type neuron )
 	{
 		return (neuron >> ACTION_OFFSET) & ACTION_MASK;
 	}
-	inline neuron_type getarg( neuron_type neuron )
+	static inline neuron_type getarg( neuron_type neuron )
 	{
 		return (neuron >> ARG_OFFSET) & ARG_MASK;
 	}
-	inline neuron_type getjumpf( neuron_type neuron )
+	static inline neuron_type getjumpf( neuron_type neuron )
 	{
 		return (neuron >> JUMPF_OFFSET) & JUMP_MASK;
 	}
-	inline neuron_type getjumps( neuron_type neuron )
+	static inline neuron_type getjumps( neuron_type neuron )
 	{
 		return (neuron >> JUMPS_OFFSET) & JUMP_MASK;
 	}
@@ -143,21 +143,12 @@ private:
 	void move(field_type &f);
 	bool eat(field_type &f, neuron_type arg);
 	void turn(neuron_type arg);
-	bool check(
-		field_type const &f,
-		neuron_type arg
-	);
-	inline void jump(neuron_type jmp);
+	bool check( field_type const &f, neuron_type arg );
 
 
 	neuron_type random_neuron();
 
 
-	inline void incp()
-	{
-		p = (p + 1) % BRAIN_SIZE;
-		return;
-	}
 	inline clever::PointI getto() const;
 	inline bool valid(
 		clever::PointI const &to,
