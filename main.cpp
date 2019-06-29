@@ -154,8 +154,8 @@ void print(Bot const &bot)
 
 			notempty = true;
 			was.insert(*b);
-			str = to_string(*b) + " " +
-				acttostr( bot.brain[*b] ) + " ";
+			str = fills(to_string(*b), 3) +
+				fills(acttostr( bot.brain[*b] ), 7);
 
 			if(bot.getaction( bot.brain[*b] ) == Bot::NUL) 
 			{

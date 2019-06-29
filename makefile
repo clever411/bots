@@ -58,7 +58,7 @@ BotField.o: BotField.cpp BotField.hpp Cell.hpp Plant.hpp Bot.hpp Body.hpp Minera
 
 
 
-Plant.o: Plant.cpp Plant.hpp Cell.hpp
+Plant.o: Plant.cpp Plant.hpp BotField.hpp Cell.hpp
 	g++ $(CFLAGS) -o Plant.o Plant.cpp
 
 

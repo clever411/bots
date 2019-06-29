@@ -39,17 +39,11 @@ void Bot::update(field_type &f)
 	auto &cell = f.at(x, y);
 	double const delta = stepprice() + age * agesteptax();
 
-		// death
-	if( !( energy - delta > deathedge() ) )
-	{
-		cell.bot = nullptr;
-		cell.body = new Body { energy, 0 };
-		delete this;
+	// step
+	bool isdie;
+	spend_energy(f, delta, isdie);
+	if(isdie)
 		return;
-	}
-
-		// all right
-	energy -= delta;
 	cell.energy += delta;
 	
 
@@ -60,7 +54,7 @@ void Bot::update(field_type &f)
 		sqrt(
 			(energy - budreq()) /
 			(maxenergy() - budreq())
-		) > realdis(dre)
+		) > (double)rand() / RAND_MAX
 	)
 	{
 		PointI from = PointI{x, y}, to;
@@ -110,7 +104,9 @@ void Bot::update(field_type &f)
 		}
 
 		case MOVE:
-			move(f);
+			move( f, isdie );
+			if(isdie)
+				return;
 			p = getjumpf( brain[p] );
 			return;
 
@@ -132,7 +128,7 @@ void Bot::update(field_type &f)
 			break;
 
 		default:
-			throw 1;
+			throw logic_error("Bot::update() -> action is unknown");
 
 		}
 	}
@@ -176,17 +172,27 @@ Bot *Bot::bud()
 	return child;
 }
 
-void Bot::move(field_type &f)
+void Bot::move(field_type &f, bool &isdie)
 {
+	// is valid
 	auto to = getto();
 	if( !valid(to, f) )
 		return;
 
+	// is empty
 	f.correct(to);
 	auto &toc = f.at(to);
 	if(toc.bot || toc.body)
 		return;
 
+	// spend energy
+	double const delta = MOVE_PRICE_FACTOR * (stepprice() + age * agesteptax());
+	spend_energy(f, delta, isdie);
+	if(isdie)
+		return;
+	f.at(x, y).energy += delta;
+
+	// move
 	f.at(x, y).bot = nullptr;
 	x = to.x;
 	y = to.y;
@@ -339,6 +345,21 @@ bool Bot::check(field_type const &f, neuron_type arg)
 	default:
 		throw 1;
 	}
+}
+
+void Bot::spend_energy( field_type &f, double delta, bool &isdie )
+{
+	if( !( energy - delta > deathedge() ) )
+	{
+		f.at(x, y).bot = nullptr,
+		f.at(x, y).body = new Body { energy, 0 };
+		delete this;
+		isdie = true;
+	}
+	else
+		energy -= delta;
+
+	return;
 }
 
 

@@ -13,7 +13,6 @@
 
 // objects
 extern std::default_random_engine dre;
-extern std::uniform_real_distribution<double> realdis;
 
 
 
@@ -33,12 +32,13 @@ struct Bot
 	// body
 	static constexpr double const
 		MAX_ENERGY = 1000.0,
-		DEATH_EDGE = 200.0,
+		DEATH_EDGE = 50.0,
 		STEP_PRICE = 0.25,
-		AGE_STEP_TAX = 0.005,
-		AGE_DEATH_TAX = 0.25,
-		BUD_REQ = 600.0,
-		BUD_PRICE = 400.0;
+		AGE_STEP_TAX = 0.01,
+		AGE_DEATH_TAX = 0.5,
+		BUD_REQ = 400.0,
+		BUD_PRICE = 150.0,
+		MOVE_PRICE_FACTOR = 4.0;
 
 
 	// brain
@@ -140,10 +140,11 @@ private:
 
 	Bot *bud();
 
-	void move(field_type &f);
+	void move(field_type &f, bool &isdie);
 	bool eat(field_type &f, neuron_type arg);
 	void turn(neuron_type arg);
 	bool check( field_type const &f, neuron_type arg );
+	void spend_energy( field_type &f, double delta, bool &isdie );
 
 
 	neuron_type random_neuron();

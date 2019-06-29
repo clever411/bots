@@ -21,7 +21,6 @@ using namespace std;
 
 // objects
 std::default_random_engine dre( time(0) );
-std::uniform_real_distribution<double> realdis;
 
 
 
@@ -77,7 +76,8 @@ void BotField::reset()
 	}
 
 	age = 0;
-	summen = grounden = planten = boten = 0.0;
+	summen = grounden = airen =
+		planten = boten = bodyen = mineralen = 0.0;
 	set_cells_();
 
 	return;
@@ -268,6 +268,7 @@ void BotField::update_entities_()
 	Plant *plant;
 	Body *body;
 
+	int x, y;
 	for(auto b = begin(), e = end(); b != e; ++b)
 	{
 		if(b->bot && b->bot->worldage < age)
@@ -275,7 +276,7 @@ void BotField::update_entities_()
 
 		// plant
 		if(b->plant)
-			b->plant->update(*b);
+			b->plant->update(*this);
 
 		// body
 		if(b->body)
@@ -286,14 +287,16 @@ void BotField::update_entities_()
 
 		// saw plant
 		if(
-			!b->plant && !b->bot && !b->body &&
+			!b->plant &&
 			(
 				b->energy /
 				Cell::DEFAULT_GROUND_ENERGY
-			) * Plant::BURN_CHANCE >
-			realdis(dre)
+			) * Plant::BURN_CHANCE > (double)rand() / RAND_MAX
 		)
-			b->plant = new Plant{ 0.0 };
+		{
+			getxy(b, x, y);
+			b->plant = new Plant{ x, y, 0.0 };
+		}
 	}
 
 
