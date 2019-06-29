@@ -14,8 +14,26 @@ struct Cell;
 struct Plant;
 struct Bot;
 
+
+
+struct MapUnit
+{
+	double
+		grounden = 0.0,
+		airen = 0.0,
+		planten = 0.0,
+		boten = 0.0,
+		bodyen = 0.0, 
+		mineralen = 0.0;
+	int density = 0;
+};
+
+
+
 struct BotField: public clever::HexagonField<Cell>
 {
+	static constexpr int const MAPPING_KOFF = 5;
+
 	// members
 	int age = 0;
 
@@ -27,6 +45,8 @@ struct BotField: public clever::HexagonField<Cell>
 		boten = 0.0,
 		bodyen = 0.0, 
 		mineralen = 0.0;
+
+	HexagonField<MapUnit> mapping;
 
 
 

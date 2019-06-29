@@ -4,7 +4,6 @@
 #include <iostream>
 #include <memory>
 
-#include <clever/Layout.hpp>
 #include <clever/SFML/HelpFunction.hpp>
 
 #include "declare.hpp"
@@ -22,12 +21,27 @@ using namespace std;
 
 
 // init functions
+void init_window();
+void init_field();
+void init_layout();
+void init_printer();
+void init_mapprinter();
+void init_adapter();
+void init_mapadapter();
+void init_font();
+void init_labels();
+
+
+
 void init()
 {
 	init_window();
 	init_field();
+	init_layout();
 	init_printer();
+	init_mapprinter();
 	init_adapter();
+	init_mapadapter();
 	init_font();
 	init_labels();
 
@@ -51,8 +65,53 @@ void init_field()
 	return;
 }
 
+
+void init_layout()
+{
+	layout.size = makep<float>(window.getSize());
+	layout.push( { 0.857143, 0.142857 } );
+
+	// field & labels
+	layout[0].type = Layout::Type::vertical;
+	layout[0].push( { 0.875, 0.125 } );
+
+	// field
+	fieldlay = &layout[0][0];
+
+	// labels
+	labelslay = &layout[0][1];
+	labelslay->push( { 0.7, 1.2, 1.0, 1.0 } );
+	auto loctype = makep(Layout::LocalType::second, Layout::LocalType::second);
+	(*labelslay)[0].setloc( { 1, 2 }, loctype );
+	(*labelslay)[1].setloc( { 1, 3 }, loctype );
+	(*labelslay)[2].setloc( { 1, 2 }, loctype );
+	(*labelslay)[3].setloc( { 1, 2 }, loctype );
+
+	// mapping
+	mappinglay = &layout[1];
+	mappinglay->type = Layout::Type::vertical;
+	mappinglay->setloc(1, 6);
+
+	// all
+	layout.adjust();
+
+
+
+	return;
+}
+
 void init_printer()
 {
+	printer.groundgrad = { {
+		Color(0x00, 0x00, 0x00, 0x00),
+		Color(0x00, 0x00, 0x00, 0xff)
+	} };
+
+	printer.airgrad = { {
+		Color(0x00, 0x00, 0x00, 0x00),
+		Color(0xff, 0x00, 0x00, 0xff)
+	} };
+
 	printer.plantgrad = Gradient::gen('g', 'r');
 	printer.plantgrad.colors[0].a = 0x66;
 	printer.plantgrad.colors[1].a = 0xaa;
@@ -69,16 +128,23 @@ void init_printer()
 	printer.mineralgrad.colors[0].a = 0x33;
 	printer.mineralgrad.colors[1].a = 0x77;
 
-	printer.groundgrad = { {
-		Color(0x00, 0x00, 0x00, 0x00),
-		Color(0x00, 0x00, 0x00, 0xff)
-	} };
 
-	printer.airgrad = { {
-		Color(0x00, 0x00, 0x00, 0x00),
-		Color(0xff, 0x00, 0x00, 0xff)
-	} };
+
+	return;
 }
+
+void init_mapprinter()
+{
+	mapprinter.groundgrad = printer.groundgrad;
+	mapprinter.airgrad = printer.airgrad;
+	mapprinter.plantgrad = printer.plantgrad;
+	mapprinter.botgrad = printer.botgrad;
+	mapprinter.bodygrad = printer.bodygrad;
+	mapprinter.mineralgrad = printer.mineralgrad;
+
+	return;
+}
+
 
 void init_adapter()
 {
@@ -90,16 +156,30 @@ void init_adapter()
 		&printer,
 		[](printer_type *) { return; }
 	) ).
-	setSize(
-		makep<float>(window.getSize())
-	).
+	setSize( fieldlay->bounds() ).
+	setDrawGridEnable(false);
+
+	return;
+}
+
+void init_mapadapter()
+{
+	mapadapter.setField( shared_ptr<mapfield_type>(
+		&field.mapping,
+		[](mapfield_type *) { return; }
+	) ).
+	setPrinter( shared_ptr<mapprinter_type>(
+		&mapprinter,
+		[](mapprinter_type *) { return; }
+	) ).
+	setSize( mappinglay->bounds(0) ).
 	setDrawGridEnable(false).
-	setGridThickness(2.0f).
-	setGridColor(sf::Color::White);
+	setOrigin( mappinglay->bounds(0) / 2.0f );
 
 
 	return;
 }
+
 
 void init_font()
 {
@@ -109,19 +189,6 @@ void init_font()
 
 void init_labels()
 {
-	Layout layout;
-	layout.refp = { 0.0f, adapter.getSize().y };
-	layout.size = { (float)window.getSize().x, window.getSize().y - adapter.getSize().y };
-	layout.push({0.8f, 1.0f, 1.0f, 1.0f});
-	auto loctype = makep(Layout::LocalType::second, Layout::LocalType::second);
-	layout[0].setloc({1, 2}, loctype);
-	layout[1].setloc({1, 3}, loctype);
-	layout[2].setloc({1, 2}, loctype);
-	layout[3].setloc({1, 2}, loctype);
-	layout.adjust();
-
-
-	
 	Text *labels[] = {
 		&agelabel, &speedlabel,
 	 	&summenlabel, &groundenlabel, &airenlabel,
@@ -151,13 +218,12 @@ void init_labels()
 			labels[i]->getLocalBounds().height
 		);
 		labels[i]->setPosition(
-			layout(i).to<Vector2f>()
+			(*labelslay)(i).to<Vector2f>()
 		);
 	}
 
 
 
-	layout.free();
 	return;
 }
 
@@ -166,7 +232,8 @@ void init_labels()
 void free()
 {
 	field.free();
-
+	layout.free();
+	return;
 }
 
 

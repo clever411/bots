@@ -5,6 +5,7 @@
 #include "Cell.hpp"
 #include "Plant.hpp"
 #include "Bot.hpp"
+#include "BotField.hpp"
 #include "Body.hpp"
 #include "Mineral.hpp"
 
@@ -16,19 +17,12 @@ using namespace sf;
 
 
 
-// core
+// CellPrinter
 CellPrinter::CellPrinter()
 {
 	setPointCount(6);
 	setRotation(90);
 	setSideSize(30.0f);
-	return;
-}
-
-CellPrinter::CellPrinter(Cell const &cell):
-	CellPrinter()
-{
-	set(cell);
 	return;
 }
 
@@ -97,6 +91,90 @@ CellPrinter &CellPrinter::changeMode()
 		mode = airmode;
 	else
 		mode = groundmode;
+	return *this;
+}
+
+
+
+
+
+// MapUnitPrinter
+MapUnitPrinter::MapUnitPrinter()
+{
+	setPointCount(6);
+	setRotation(90);
+	setSideSize(30.0f);
+	return;
+}
+
+
+MapUnitPrinter &MapUnitPrinter::setSideSize(float a)
+{
+	setRadius(a);
+	setOrigin(a, a);
+	return *this;
+}
+
+MapUnitPrinter &MapUnitPrinter::set(MapUnit const &unit)
+{
+	static constexpr double const ALPHA = 0.001;
+
+	double k;
+	double denmult = ( unit.density == 0 ? 0.0 : 1.0 / unit.density );
+
+	switch(mode)
+	{
+	case groundmode:
+		k = ( unit.grounden / Cell::DEFAULT_GROUND_ENERGY ) * denmult;
+		if(k < ALPHA)
+			setFillColor( Color::Transparent );
+		else
+			setFillColor( groundgrad(k) );
+		return *this;
+	case airmode:
+		k = ( unit.airen / Cell::DEFAULT_AIR_ENERGY ) * denmult;
+		if(k < ALPHA)
+			setFillColor( Color::Transparent );
+		else
+			setFillColor( airgrad(k) );
+		return *this;
+	case plantmode:
+		k = 2.0 * ( unit.planten / Plant::MAX_ENERGY ) * denmult;
+		if(k < ALPHA)
+			setFillColor( Color::Transparent );
+		else
+			setFillColor( plantgrad(k) );
+		return *this;
+	case botmode:
+		k = 2.0 * ( unit.boten / Bot::MAX_ENERGY ) * denmult;
+		if(k < ALPHA)
+			setFillColor( Color::Transparent );
+		else
+			setFillColor( botgrad(k) );
+		return *this;
+	case bodymode:
+		k = 2.0 * ( unit.bodyen / Bot::DEATH_EDGE ) * denmult;
+		if(k < ALPHA)
+			setFillColor( Color::Transparent );
+		else
+			setFillColor( bodygrad(k) );
+		return *this;
+	case mineralmode:
+		k = 2.0 * ( unit.mineralen / 100.0 ) * denmult;
+		if(k < ALPHA)
+			setFillColor( Color::Transparent );
+		else
+			setFillColor( mineralgrad(k) );
+		return *this;
+	default:
+		throw std::logic_error("MapUnitPrinter::set() -> unknown mode");
+	}
+}
+
+
+MapUnitPrinter &MapUnitPrinter::setMode(Mode newmode)
+{
+	mode = newmode;
 	return *this;
 }
 

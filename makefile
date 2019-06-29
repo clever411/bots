@@ -53,7 +53,7 @@ init.o: init.cpp init.hpp declare.hpp BotField.hpp CellPrinter.hpp
 
 
 
-BotField.o: BotField.cpp BotField.hpp Cell.hpp Plant.hpp Bot.hpp Body.hpp Mineral.hpp
+BotField.o: BotField.cpp BotField.hpp Body.hpp Bot.hpp Cell.hpp Mapping.hpp Mineral.hpp Plant.hpp 
 	g++ $(CFLAGS) -o BotField.o BotField.cpp
 
 
@@ -81,7 +81,7 @@ Mineral.o: Mineral.cpp Mineral.hpp Cell.hpp Plant.hpp
 
 
 
-CellPrinter.o: CellPrinter.cpp CellPrinter.hpp Cell.hpp Plant.hpp Bot.hpp Body.hpp Mineral.hpp Gradient.hpp
+CellPrinter.o: CellPrinter.cpp CellPrinter.hpp Cell.hpp Plant.hpp Bot.hpp BotField.hpp Body.hpp Mineral.hpp Gradient.hpp
 	g++ $(CFLAGS) -o CellPrinter.o CellPrinter.cpp
 
 

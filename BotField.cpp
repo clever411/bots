@@ -5,11 +5,12 @@
 
 #include <clever/HelpFunction.hpp>
 
-#include "Cell.hpp"
-#include "Plant.hpp"
-#include "Bot.hpp"
 #include "Body.hpp"
+#include "Bot.hpp"
+#include "Cell.hpp"
+#include "Mapping.hpp"
 #include "Mineral.hpp"
+#include "Plant.hpp"
 
 
 using namespace clever;
@@ -49,6 +50,7 @@ BotField &BotField::free()
 	}
 
 	delete[] d;
+	mapping.free();
 
 	return *this;
 }
@@ -59,6 +61,7 @@ BotField &BotField::free()
 void BotField::init_botfield(int width, int height)
 {
 	init(width, height);
+	init_mapping(*this, mapping, MAPPING_KOFF);
 	set_cells_();
 	return;
 }
@@ -310,20 +313,29 @@ void BotField::calculate_energy_()
 	grounden = airen =
 		planten = boten =
 		bodyen = mineralen = 0.0;
+	mapping.zeroize();
 
+	MapUnit *mp;
 	for(auto b = begin(), e = end(); b != e; ++b)
 	{
-		grounden += b->energy;
-		airen += b->airenergy;
+		mp = &mapping.at( map( getxy(b), MAPPING_KOFF ) );
+		++mp->density;
+
+		grounden += b->energy, mp->grounden += b->energy;
+		airen += b->airenergy, mp->airen += b->airenergy;
 
 		if(b->plant)
-			planten += b->plant->energy;
+			planten += b->plant->energy,
+			mp->planten += b->plant->energy;
 		if(b->bot)
-			boten += b->bot->energy;
+			boten += b->bot->energy,
+			mp->boten += b->bot->energy;
 		if(b->body)
-			bodyen += b->body->energy;
+			bodyen += b->body->energy,
+			mp->bodyen += b->body->energy;
 		if(b->mineral)
-			mineralen += b->mineral->energy;
+			mineralen += b->mineral->energy,
+			mp->mineralen += b->mineral->energy;
 	}
 
 	summen = grounden + airen + planten + boten + bodyen + mineralen;

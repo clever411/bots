@@ -28,7 +28,7 @@ Color const maincolor(0x5b, 0x3a, 0x29);
 
 Font font;
 unsigned int FONT_SIZE = 40u;
-unsigned int EN_FONT_SIZE = 30u;
+unsigned int EN_FONT_SIZE = 25u;
 Text
 	agelabel,
 	speedlabel,
@@ -40,15 +40,19 @@ Text
 	bodyenlabel,
 	mineralenlabel;
 
+Layout layout,
+       *fieldlay, *mappinglay, *labelslay;
 printer_type printer;
+mapprinter_type mapprinter;
 adapter_type adapter;
+mapadapter_type mapadapter;
 
 
 
 // field
 field_type field;
-int const DEFAULT_FIELD_WIDTH = 90;
-int const DEFAULT_FIELD_HEIGHT = 150;
+int const DEFAULT_FIELD_WIDTH = 80;
+int const DEFAULT_FIELD_HEIGHT = 160;
 
 statstring_type
 	agestring  ("age:   0  "),

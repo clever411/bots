@@ -258,6 +258,32 @@ void reduce_speed(double &s)
 
 
 
+void draw_mappings()
+{
+	static constexpr int const MODE_COUNT = 6;
+	static constexpr MapUnitPrinter::Mode const modes[] = {
+		MapUnitPrinter::Mode::groundmode,
+		MapUnitPrinter::Mode::airmode,
+		MapUnitPrinter::Mode::plantmode,
+		MapUnitPrinter::Mode::botmode,
+		MapUnitPrinter::Mode::bodymode,
+		MapUnitPrinter::Mode::mineralmode
+	};
+
+	for(int i = 0; i < MODE_COUNT; ++i)
+	{
+		mapprinter.setMode(modes[i]);
+		mapadapter.setPosition(
+			(*mappinglay)(i)
+		);
+		window.draw(mapadapter);
+	}
+	
+	return;
+}
+
+
+
 
 
 // main
@@ -342,7 +368,7 @@ int main( int argc, char *argv[] )
 					break;
 
 				case Keyboard::F:
-					field.random_fill(100);
+					field.random_fill(300);
 					upfield = true;
 					break;
 
@@ -518,6 +544,7 @@ int main( int argc, char *argv[] )
 				cutzero( to_string( int( field.mineralen * 10.0 ) / 10.0 ) );
 
 			adapter.update();
+			mapadapter.update();
 			upfield = false;
 		}
 
@@ -531,6 +558,7 @@ int main( int argc, char *argv[] )
 		// draw
 		window.clear( Color(backgroundcolor) );
 		window.draw( adapter );
+		draw_mappings();
 		for(auto i : labels)
 			window.draw(*i);
 		window.display();
