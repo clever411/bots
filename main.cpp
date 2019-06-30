@@ -501,7 +501,6 @@ int main( int argc, char *argv[] )
 			upfield = false;
 		}
 
-
 			// update labels
 		for(int i = 0; i < LABELS_COUNT; ++i)
 			labels[i].update();
