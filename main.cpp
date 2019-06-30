@@ -319,7 +319,11 @@ int main( int argc, char *argv[] )
 		return string("age:   ") + to_string(age);
 	};
 	labels[1].getval = [&]()->string {
-		return string("speed: ") + cutzero( to_string(updatespeed) );
+		return string("speed: ") + 
+			( updatespeed > 9.75 ?
+				to_string((int)updatespeed) :
+				cutzero( to_string(updatespeed) )
+			);
 	};
 
 
@@ -500,7 +504,6 @@ int main( int argc, char *argv[] )
 			mapadapter.update();
 			upfield = false;
 		}
-
 
 			// update labels
 		for(int i = 0; i < LABELS_COUNT; ++i)

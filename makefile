@@ -1,7 +1,7 @@
 EXECUTABLE = main
 CFLAGS = -std=gnu++17 -c -O5 -DDEBUG -I./library
 LDFLAGS = -L./library/clever/lib
-LIBS = -lsfml-graphics -lsfml-system -lsfml-window -pthread -lclever-layout
+LIBS = -lsfml-graphics -lsfml-system -lsfml-window -pthread -lclever-layout -lclever-gradient
 
 
 
@@ -30,11 +30,11 @@ clean:
 $(EXECUTABLE): \
 	main.o define.o init.o \
 	BotField.o Plant.o Bot.o BotGen.o Body.o Mineral.o \
-	CellPrinter.o Gradient.o Stat.o
+	CellPrinter.o Stat.o
 	g++ $(LDFLAGS) -o $(EXECUTABLE) \
 	main.o define.o init.o \
 	BotField.o Plant.o Bot.o BotGen.o Body.o Mineral.o \
-	CellPrinter.o Gradient.o Stat.o $(LIBS)
+	CellPrinter.o Stat.o $(LIBS)
 
 main.o: main.cpp declare.hpp init.hpp \
 	BotField.hpp Cell.hpp Plant.hpp Bot.hpp Body.hpp Mineral.hpp \
@@ -81,12 +81,8 @@ Mineral.o: Mineral.cpp Mineral.hpp Cell.hpp Plant.hpp
 
 
 
-CellPrinter.o: CellPrinter.cpp CellPrinter.hpp Cell.hpp Plant.hpp Bot.hpp BotField.hpp Body.hpp Mineral.hpp Gradient.hpp
+CellPrinter.o: CellPrinter.cpp CellPrinter.hpp Cell.hpp Plant.hpp Bot.hpp BotField.hpp Body.hpp Mineral.hpp
 	g++ $(CFLAGS) -o CellPrinter.o CellPrinter.cpp
-
-
-Gradient.o: Gradient.cpp Gradient.hpp
-	g++ $(CFLAGS) -o Gradient.o Gradient.cpp
 
 
 Stat.o: Stat.cpp Stat.hpp

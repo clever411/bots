@@ -37,7 +37,7 @@ unsigned int FONT_SIZE = 40u;
 unsigned int EN_FONT_SIZE = 22u;
 unsigned int EF_FONT_SIZE = 22u;
 
-int const LABEL_LENGTH = 10;
+int const LABEL_LENGTH = 8;
 int const EN_LABEL_LENGTH = 15;
 int const EF_LABEL_LENGTH = 18;
 
@@ -130,7 +130,7 @@ void init_printer()
 	printer.bodygrad.colors[0].a = 0xbb;
 	printer.bodygrad.colors[1].a = 0xff;
 
-	printer.mineralgrad = Gradient::DARKLING_BLUE;
+	printer.mineralgrad = Gradient::DARKLING_RED;
 	printer.mineralgrad.colors[0].a = 0x33;
 	printer.mineralgrad.colors[1].a = 0x77;
 

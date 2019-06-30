@@ -3,7 +3,7 @@
 
 #include <SFML/Graphics.hpp>
 
-#include "Gradient.hpp"
+#include <clever/SFML/Gradient.hpp>
 
 
 

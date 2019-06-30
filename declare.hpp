@@ -10,8 +10,8 @@
 #include <clever/HexagonField.hpp>
 #include <clever/Layout.hpp>
 #include <clever/SFML/FieldAdapter.hpp>
+#include <clever/SFML/Label.hpp>
 
-#include "Label.hpp"
 
 
 
