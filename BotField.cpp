@@ -285,8 +285,7 @@ void BotField::update_entities_()
 		if(b->body)
 			b->body->update(*b);
 
-		if(b->mineral)
-			b->mineral->update(*b);
+		b->mineral.update(*b);
 
 		// saw plant
 		if(
@@ -333,9 +332,8 @@ void BotField::calculate_energy_()
 		if(b->body)
 			bodyen += b->body->energy,
 			mp->bodyen += b->body->energy;
-		if(b->mineral)
-			mineralen += b->mineral->energy,
-			mp->mineralen += b->mineral->energy;
+		mineralen += b->mineral.hidenergy + b->mineral.energy,
+		mp->mineralen += b->mineral.hidenergy + b->mineral.energy;
 	}
 
 	summen = grounden + airen + planten + boten + bodyen + mineralen;

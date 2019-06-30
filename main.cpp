@@ -218,11 +218,11 @@ void print(Cell const &cell)
 		print(*cell.body);
 	else if(cell.plant)
 		print(*cell.plant);
-	else if(cell.mineral)
-		print(*cell.mineral);
 	else
 		cout << "it's empty\n"
 			"energy: " << cell.energy << "\n"
+			"hid mineral energy: " << cell.mineral.hidenergy << "\n"
+			"mineral energy: " << cell.mineral.energy << "\n"
 			"------------------------------\n\n";
 
 	return;
@@ -314,21 +314,6 @@ int main( int argc, char *argv[] )
 		summen, grounden,
 		planten, boten;
 
-	Text *labels[] = {
-		&agelabel, &speedlabel,
-		&summenlabel, &groundenlabel, &airenlabel,
-		&plantenlabel, &botenlabel,
-		&bodyenlabel, &mineralenlabel
-	};
-	statstring_type *strings[] = {
-		&agestring, &speedstring,
-		&summenstring, &groundenstring, &airenstring,
-		&plantenstring, &botenstring,
-		&bodyenstring, &mineralenstring
-	};
-	static constexpr int const
-		LABELS_COUNT = sizeof(labels) / sizeof(decltype(labels[9]));
-
 	Stat stat;
 
 
@@ -368,7 +353,7 @@ int main( int argc, char *argv[] )
 					break;
 
 				case Keyboard::F:
-					field.random_fill(300);
+					field.random_fill(200);
 					upfield = true;
 					break;
 
@@ -516,32 +501,48 @@ int main( int argc, char *argv[] )
 		if( upfield )
 		{
 			summenstring =
-				"summ energy:    " +
+				"E summ:    " +
 				to_string( int( round(field.summen) ) );
 
 			groundenstring =
-				"ground energy:  " +
-				cutzero( to_string( int( field.grounden * 10.0 ) / 10.0 ) );
+				"E ground:  " +
+				 to_string( int( round(field.grounden) ) );
 
 			airenstring =
-				"air energy:     " +
-				cutzero( to_string( int( field.airen * 10.0 ) / 10.0 ) );
+				"E air:     " +
+				 to_string( int( round(field.airen) ) );
 
 			plantenstring =
-				"plants energy:  " +
-				cutzero( to_string( int( field.planten * 10.0 ) / 10.0 ) );
+				"E plants:  " +
+				to_string( int( round(field.planten) ) );
 
 			botenstring =
-				"bots energy:    " +
-				cutzero( to_string( int( field.boten * 10.0 ) / 10.0 ) );
+				"E bots:    " +
+				to_string( int( round(field.boten) ) );
 
 			bodyenstring =
-				"bodyes energy:  " +
-				cutzero( to_string( int( field.bodyen * 10.0 ) / 10.0 ) );
+				"E bodyes:  " +
+				to_string( int( round(field.bodyen) ) );
 
 			mineralenstring =
-				"mineral energy: " +
-				cutzero( to_string( int( field.mineralen * 10.0 ) / 10.0 ) );
+				"E mineral: " +
+				to_string( int( round(field.mineralen) ) );
+
+			efairstring =
+				"EF air:     " +
+				to_string( int( round(Bot::energy_from_air) ) );
+
+			efplantsstring =
+				"EF plants:  " +
+				to_string( int( round(Bot::energy_from_plants) ) );
+
+			efbodystring =
+				"EF bodyes:  " +
+				to_string( int( round(Bot::energy_from_body) ) );
+
+			efmineralsstring =
+				"EF mineral: " +
+				to_string( int( round(Bot::energy_from_minerals) ) );
 
 			adapter.update();
 			mapadapter.update();
@@ -549,7 +550,7 @@ int main( int argc, char *argv[] )
 		}
 
 			// update text labels
-		for(int i = 0; i < LABELS_COUNT; ++i)
+		for(int i = 0; i < LABSTR_COUNT; ++i)
 			if( strings[i]->isChanged() )
 				labels[i]->setString( strings[i]->get() );
 
@@ -559,8 +560,8 @@ int main( int argc, char *argv[] )
 		window.clear( Color(backgroundcolor) );
 		window.draw( adapter );
 		draw_mappings();
-		for(auto i : labels)
-			window.draw(*i);
+		for(int i = 0; i < LABSTR_COUNT; ++i)
+			window.draw(*labels[i]);
 		window.display();
 	}
 	

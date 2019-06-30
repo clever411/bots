@@ -51,6 +51,7 @@ extern sf::Color const maincolor;
 extern sf::Font font;
 extern unsigned int FONT_SIZE;
 extern unsigned int EN_FONT_SIZE;
+extern unsigned int EF_FONT_SIZE;
 extern sf::Text
 	agelabel,
 	speedlabel,
@@ -60,7 +61,15 @@ extern sf::Text
 	plantenlabel,
 	botenlabel,
 	bodyenlabel,
-	mineralenlabel;
+	mineralenlabel,
+
+	efairlabel,
+	efplantslabel,
+	efbodylabel,
+	efmineralslabel;
+
+extern sf::Text *labels[];
+
 
 extern clever::Layout layout,
        *fieldlay, *mappinglay, *labelslay;
@@ -79,13 +88,22 @@ extern int const DEFAULT_FIELD_HEIGHT;
 extern statstring_type
 	agestring,
 	speedstring,
+
 	summenstring,
 	groundenstring,
 	airenstring,
 	plantenstring,
 	botenstring,
 	bodyenstring,
-	mineralenstring;
+	mineralenstring,
+
+	efairstring,
+	efplantsstring,
+	efbodystring,
+	efmineralsstring;
+
+extern statstring_type *strings[];
+extern int const LABSTR_COUNT;
 
 
 

@@ -80,12 +80,14 @@ void init_layout()
 
 	// labels
 	labelslay = &layout[0][1];
-	labelslay->push( { 0.7, 1.2, 1.0, 1.0 } );
+	labelslay->push( { 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 } );
 	auto loctype = makep(Layout::LocalType::second, Layout::LocalType::second);
 	(*labelslay)[0].setloc( { 1, 2 }, loctype );
 	(*labelslay)[1].setloc( { 1, 3 }, loctype );
 	(*labelslay)[2].setloc( { 1, 2 }, loctype );
 	(*labelslay)[3].setloc( { 1, 2 }, loctype );
+	(*labelslay)[4].setloc( { 1, 2 }, loctype );
+	(*labelslay)[5].setloc( { 1, 2 }, loctype );
 
 	// mapping
 	mappinglay = &layout[1];
@@ -189,28 +191,13 @@ void init_font()
 
 void init_labels()
 {
-	Text *labels[] = {
-		&agelabel, &speedlabel,
-	 	&summenlabel, &groundenlabel, &airenlabel,
-		&plantenlabel, &botenlabel,
-		&bodyenlabel, &mineralenlabel
-	};
-	statstring_type *strings[] = {
-		&agestring, &speedstring,
-		&summenstring, &groundenstring, &airenstring,
-		&plantenstring, &botenstring,
-		&bodyenstring, &mineralenstring
-	};
-	static constexpr int const
-		LABELS_COUNT = sizeof(labels) / sizeof(decltype(*labels));
-
-
-
-	for(int i = 0; i < LABELS_COUNT; ++i)
+	for(int i = 0; i < LABSTR_COUNT; ++i)
 	{
 		labels[i]->setFont( font );
 		labels[i]->setFillColor( maincolor );
-		labels[i]->setCharacterSize( i < 2 ? FONT_SIZE : EN_FONT_SIZE );
+		labels[i]->setCharacterSize(
+			i < 2 ? FONT_SIZE : ( i < LABSTR_COUNT-4 ? EN_FONT_SIZE : EF_FONT_SIZE )
+		);
 		labels[i]->setString( strings[i]->get() );
 
 		labels[i]->setOrigin(
@@ -221,7 +208,6 @@ void init_labels()
 			(*labelslay)(i).to<Vector2f>()
 		);
 	}
-
 
 
 	return;

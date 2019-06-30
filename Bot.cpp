@@ -19,6 +19,11 @@ using namespace std;
 // objects
 uniform_int_distribution<int> dirdis(0, BotField::OFFSET_COUNT);
 
+double Bot::energy_from_air = 0.0;
+double Bot::energy_from_plants = 0.0;
+double Bot::energy_from_body = 0.0;
+double Bot::energy_from_minerals = 0.0;
+
 
 
 
@@ -57,26 +62,24 @@ void Bot::update(field_type &f)
 		) > (double)rand() / RAND_MAX
 	)
 	{
-		PointI from = PointI{x, y}, to;
 		int choice;
 		int count = -1;
 		do
 		{
 			choice = dirdis(dre);
-			to = { from.x + f.OFFSET[choice][0], from.y + f.OFFSET[choice][1] };
 			++count;
 		}
 		while(
-			( !valid(to, f) ||
-			  f.att(to).bot ||
-			  f.att(to).body ) &&
+			( !valid(f, choice) ||
+			  f.neart(x, y, choice).bot ||
+			  f.neart(x, y, choice).body ) &&
 			count < REPEAT_COMMAND_COUNT
 		);
 
 
 		if(count != REPEAT_COMMAND_COUNT)
 		{
-			f.correct(to);
+			PointI to = f.getxy( &f.neart(x, y, choice) );
 			Bot *bot = bud();
 			bot->x = to.x;
 			bot->y = to.y;
@@ -153,7 +156,7 @@ Bot *Bot::bud()
 	static uniform_int_distribution<int>
 		braindis(0, BRAIN_SIZE-1);
 
-	// burn
+	// bud
 	Bot *child = new Bot(*this);
 	child->age = 0;
 	++child->generation;
@@ -176,7 +179,7 @@ void Bot::move(field_type &f, bool &isdie)
 {
 	// is valid
 	auto to = getto();
-	if( !valid(to, f) )
+	if( !valid(f, to) )
 		return;
 
 	// is empty
@@ -213,15 +216,18 @@ bool Bot::eat(field_type &f, neuron_type arg)
 			double take = min(maxenergy() - energy, gen.plant());
 			if( !( plant.energy > take ) )
 			{
-				energy += plant.energy;
+				energy += plant.energy,
+				energy_from_plants += plant.energy;
 				delete toc.plant;
 				toc.plant = nullptr;
 			}
 			else
 			{
 				plant.energy -= take;
-				energy += take;
+				energy += take,
+				energy_from_plants += take;
 			}
+
 			return true;
 		}
 		return false;
@@ -229,11 +235,6 @@ bool Bot::eat(field_type &f, neuron_type arg)
 	case 1:
 		if(toc.body)
 		{
-			static int COUNT_EAT_BODY = 0;
-			++COUNT_EAT_BODY;
-			if(COUNT_EAT_BODY % 1000 == 0)
-				cout << "Body: " << COUNT_EAT_BODY/1000 << " * 1000" << endl;
-
 			auto &body = *toc.body;
 			double const delta = min(
 				maxenergy() - energy,
@@ -241,58 +242,46 @@ bool Bot::eat(field_type &f, neuron_type arg)
 			);
 			if( !( body.energy > delta ) )
 			{
-				energy += body.energy;
+				energy += body.energy,
+				energy_from_body += body.energy;
 				delete toc.body;
 				toc.body = nullptr;
 			}
 			else
 			{
 				body.energy -= delta;
-				energy += delta;
+				energy += delta,
+				energy_from_body += delta;
 			}
+
 			return true;
 		}
 		return false;
 
 	case 2:
-		if(toc.mineral)
 		{
-			static int COUNT_EAT_MINERAL = 0;
-			++COUNT_EAT_MINERAL;
-			if(COUNT_EAT_MINERAL % 1000 == 0)
-				cout << "Mineral: " << COUNT_EAT_MINERAL/1000 << " * 1000" << endl;
-
-			auto &mineral = *toc.mineral;
 			double const delta = min(
 				maxenergy() - energy,
 				gen.mineral()
 			);
-			if( !(mineral.energy > delta) )
-			{
-				energy += mineral.energy;
-				delete toc.mineral;
-				toc.mineral = nullptr;
-			}
+			if( !(toc.mineral.energy > delta) )
+				energy += toc.mineral.energy,
+				energy_from_minerals += toc.mineral.energy,
+				toc.mineral.energy = 0.0;
 			else
-			{
-				mineral.energy -= delta;
-				energy += delta;
-			}
-			return true;
+				toc.mineral.energy -= delta,
+				energy += delta,
+				energy_from_minerals += delta;
 		}
-		return false;
+		return true;
 
 	case 3:
 		{
-			static int COUNT_EAT_AIR = 0;
-			++COUNT_EAT_AIR;
-			if(COUNT_EAT_AIR % 10000 == 0)
-				cout << "Air: " << COUNT_EAT_AIR/10000 << " * 10000" << endl;
-
 			auto &to = f.at(x, y);
 			double const delta = to.airenergy * gen.air();
 			to.airenergy -= delta;
-			energy += delta;
+			energy += delta,
+			energy_from_air += delta;
 		}
 		return true;
 
@@ -333,15 +322,13 @@ bool Bot::check(field_type const &f, neuron_type arg)
 	switch(arg)
 	{
 	case 0:
-		return !toc.bot && !toc.body;
+		return !toc.bot && !toc.body && valid(f, dir);
 	case 1:
 		return toc.plant;
 	case 2:
 		return toc.bot;
 	case 3:
 		return toc.body;
-	case 4:
-		return toc.mineral;
 	default:
 		throw 1;
 	}
@@ -383,8 +370,7 @@ Bot::neuron_type Bot::random_neuron()
 		CHECK,
 		CHECK | (1 << ARG_OFFSET),
 		CHECK | (2 << ARG_OFFSET),
-		CHECK | (3 << ARG_OFFSET),
-		CHECK | (4 << ARG_OFFSET)
+		CHECK | (3 << ARG_OFFSET)
 	};
 
 	static constexpr int const
@@ -411,11 +397,19 @@ inline PointI Bot::getto() const
 }
 
 inline bool Bot::valid(
-	PointI const &to,
-	field_type const &f
-) const
+	field_type const &f,
+	PointI const &to
+)
 {
 	return to.y >= 0 && to.y < f.h;
+}
+
+inline bool Bot::valid(
+	field_type const &f,
+	int dir
+) const
+{
+	return y + f.OFFSET[dir][1] >= 0 && y + f.OFFSET[dir][1] < f.h;
 }
 
 

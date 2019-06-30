@@ -28,6 +28,13 @@ struct Bot
 	typedef uint32_t neuron_type;
 
 
+	// statistics
+	static double
+		energy_from_air,
+		energy_from_plants,
+		energy_from_body,
+		energy_from_minerals;
+
 
 	// body
 	static constexpr double const
@@ -151,9 +158,13 @@ private:
 
 
 	inline clever::PointI getto() const;
+	static inline bool valid(
+		field_type const &f,
+		clever::PointI const &to
+	);
 	inline bool valid(
-		clever::PointI const &to,
-		field_type const &f
+		field_type const &f,
+		int dir
 	) const;
 	
 
