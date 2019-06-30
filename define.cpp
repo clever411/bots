@@ -30,31 +30,14 @@ Font font;
 unsigned int FONT_SIZE = 40u;
 unsigned int EN_FONT_SIZE = 22u;
 unsigned int EF_FONT_SIZE = 22u;
-Text
-	agelabel,
-	speedlabel,
 
-	summenlabel,
-	groundenlabel,
-	airenlabel,
-	plantenlabel,
-	botenlabel,
-	bodyenlabel,
-	mineralenlabel,
-	
-	efairlabel,
-	efplantslabel,
-	efbodylabel,
-	efmineralslabel;
+int const LABEL_LENGTH = 10;
+int const EN_LABEL_LENGTH = 15;
+int const EF_LABEL_LENGTH = 18;
 
-Text *labels[] = {
-	&agelabel, &speedlabel,
-	&summenlabel, &groundenlabel, &airenlabel,
-	&plantenlabel, &botenlabel,
-	&bodyenlabel, &mineralenlabel,
-	&efairlabel, &efplantslabel,
-	&efbodylabel, &efmineralslabel
-};
+int const LABELS_COUNT = 13;
+Label labels[LABELS_COUNT];
+
 
 
 Layout layout,
@@ -71,33 +54,6 @@ field_type field;
 int const DEFAULT_FIELD_WIDTH = 80;
 int const DEFAULT_FIELD_HEIGHT = 160;
 
-statstring_type
-	agestring  ("age:   0  "),
-	speedstring("speed: 0.0"),
-
-	summenstring   ("E summ:    0  "),
-	groundenstring ("E ground:  0  "),
-	airenstring    ("E air:     0  "),
-	plantenstring  ("E plants:  0  "),
-	botenstring    ("E bots:    0  "),
-	bodyenstring   ("E bodyes:  0  "),
-	mineralenstring("E mineral: 0  "),
-
-	efairstring     ("EF air:     0  "),
-	efplantsstring  ("EF plants:  0  "),
-	efbodystring    ("EF bodyes:  0  "),
-	efmineralsstring("EF mineral: 0  ");
-
-
-statstring_type *strings[] = {
-	&agestring, &speedstring,
-	&summenstring, &groundenstring, &airenstring,
-	&plantenstring, &botenstring,
-	&bodyenstring, &mineralenstring,
-	&efairstring, &efplantsstring,
-	&efbodystring, &efmineralsstring
-};
-int const LABSTR_COUNT = sizeof(labels) / sizeof(decltype(*labels));
 
 
 

@@ -11,6 +11,8 @@
 #include <clever/Layout.hpp>
 #include <clever/SFML/FieldAdapter.hpp>
 
+#include "Label.hpp"
+
 
 
 
@@ -52,23 +54,13 @@ extern sf::Font font;
 extern unsigned int FONT_SIZE;
 extern unsigned int EN_FONT_SIZE;
 extern unsigned int EF_FONT_SIZE;
-extern sf::Text
-	agelabel,
-	speedlabel,
-	summenlabel,
-	groundenlabel,
-	airenlabel,
-	plantenlabel,
-	botenlabel,
-	bodyenlabel,
-	mineralenlabel,
 
-	efairlabel,
-	efplantslabel,
-	efbodylabel,
-	efmineralslabel;
+extern int const LABEL_LENGTH;
+extern int const EN_LABEL_LENGTH;
+extern int const EF_LABEL_LENGTH;
 
-extern sf::Text *labels[];
+extern int const LABELS_COUNT;
+extern Label labels[];
 
 
 extern clever::Layout layout,
@@ -84,26 +76,6 @@ extern mapadapter_type mapadapter;
 extern field_type field;
 extern int const DEFAULT_FIELD_WIDTH;
 extern int const DEFAULT_FIELD_HEIGHT;
-
-extern statstring_type
-	agestring,
-	speedstring,
-
-	summenstring,
-	groundenstring,
-	airenstring,
-	plantenstring,
-	botenstring,
-	bodyenstring,
-	mineralenstring,
-
-	efairstring,
-	efplantsstring,
-	efbodystring,
-	efmineralsstring;
-
-extern statstring_type *strings[];
-extern int const LABSTR_COUNT;
 
 
 

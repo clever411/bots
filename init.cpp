@@ -7,6 +7,7 @@
 #include <clever/SFML/HelpFunction.hpp>
 
 #include "declare.hpp"
+#include "Bot.hpp"
 #include "BotField.hpp"
 #include "Cell.hpp"
 #include "CellPrinter.hpp"
@@ -191,20 +192,58 @@ void init_font()
 
 void init_labels()
 {
-	for(int i = 0; i < LABSTR_COUNT; ++i)
-	{
-		labels[i]->setFont( font );
-		labels[i]->setFillColor( maincolor );
-		labels[i]->setCharacterSize(
-			i < 2 ? FONT_SIZE : ( i < LABSTR_COUNT-4 ? EN_FONT_SIZE : EF_FONT_SIZE )
-		);
-		labels[i]->setString( strings[i]->get() );
+	labels[2].value = []()->string {
+		return string("E summ:    ") + to_string( (int) round( field.summen ) );
+	};
+	labels[3].value = []()->string {
+		return string("E ground:  ") + to_string( (int) round( field.grounden ) );
+	};
+	labels[4].value = []()->string {
+		return string("E air:     ") + to_string( (int) round( field.airen ) );
+	};
+	labels[5].value = []()->string {
+		return string("E plants:  ") + to_string( (int) round( field.planten ) );
+	};
+	labels[6].value = []()->string {
+		return string("E bots:    ") + to_string( (int) round( field.boten ) );
+	};
+	labels[7].value = []()->string {
+		return string("E bodyes:  ") + to_string( (int) round( field.bodyen ) );
+	};
+	labels[8].value = []()->string {
+		return string("E mineral: ") + to_string( (int) round( field.mineralen ) );
+	};
 
-		labels[i]->setOrigin(
-			labels[i]->getLocalBounds().width / 2.0f,
-			labels[i]->getLocalBounds().height
+	labels[9].value = []()->string {
+		return string("EF air:     ") + to_string( (int) round( Bot::energy_from_air ) / 1000 ) + "k";
+	};
+	labels[10].value = []()->string {
+		return string("EF plants:  ") + to_string( (int) round( Bot::energy_from_plants ) / 1000 ) + "k";
+	};
+	labels[11].value = []()->string {
+		return string("EF bodyes:  ") + to_string( (int) round( Bot::energy_from_body ) / 1000 ) + "k";
+	};
+	labels[12].value = []()->string {
+		return string("EF mineral: ") + to_string( (int) round( Bot::energy_from_minerals ) / 1000 ) + "k";
+	};
+
+	for(int i = 0; i < LABELS_COUNT; ++i)
+	{
+		labels[i].setFont( font );
+		labels[i].setFillColor( maincolor );
+		labels[i].setCharacterSize(
+			i < 2 ? FONT_SIZE : ( i < LABELS_COUNT-4 ? EN_FONT_SIZE : EF_FONT_SIZE )
 		);
-		labels[i]->setPosition(
+
+		labels[i].setString( fills( "fg",
+			i < 2 ? LABEL_LENGTH : ( i < LABELS_COUNT-4 ? EN_LABEL_LENGTH : EF_LABEL_LENGTH )
+		) );
+		labels[i].setOrigin(
+			labels[i].getLocalBounds().width / 2.0f,
+			labels[i].getLocalBounds().height
+		);
+
+		labels[i].setPosition(
 			(*labelslay)(i).to<Vector2f>()
 		);
 	}
