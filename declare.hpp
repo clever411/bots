@@ -11,6 +11,8 @@
 #include <clever/Layout.hpp>
 #include <clever/SFML/FieldAdapter.hpp>
 
+#include "Label.hpp"
+
 
 
 
@@ -40,35 +42,10 @@ typedef clever::ChangingObject<std::string> statstring_type;
 // objects
 	// SFML
 extern sf::RenderWindow window;
-extern sf::VideoMode vmode;
-extern char const *TITLE;
-extern unsigned int FRAMERATE_LIMIT;
-
 extern sf::Color const backgroundcolor;
-extern sf::Color const gridcolor;
-extern sf::Color const maincolor;
 
-extern sf::Font font;
-extern unsigned int FONT_SIZE;
-extern unsigned int EN_FONT_SIZE;
-extern unsigned int EF_FONT_SIZE;
-extern sf::Text
-	agelabel,
-	speedlabel,
-	summenlabel,
-	groundenlabel,
-	airenlabel,
-	plantenlabel,
-	botenlabel,
-	bodyenlabel,
-	mineralenlabel,
-
-	efairlabel,
-	efplantslabel,
-	efbodylabel,
-	efmineralslabel;
-
-extern sf::Text *labels[];
+extern int const LABELS_COUNT;
+extern Label labels[];
 
 
 extern clever::Layout layout,
@@ -82,28 +59,6 @@ extern mapadapter_type mapadapter;
 
 	// Field & Widgets
 extern field_type field;
-extern int const DEFAULT_FIELD_WIDTH;
-extern int const DEFAULT_FIELD_HEIGHT;
-
-extern statstring_type
-	agestring,
-	speedstring,
-
-	summenstring,
-	groundenstring,
-	airenstring,
-	plantenstring,
-	botenstring,
-	bodyenstring,
-	mineralenstring,
-
-	efairstring,
-	efplantsstring,
-	efbodystring,
-	efmineralsstring;
-
-extern statstring_type *strings[];
-extern int const LABSTR_COUNT;
 
 
 

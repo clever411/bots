@@ -7,6 +7,7 @@
 #include <clever/SFML/HelpFunction.hpp>
 
 #include "declare.hpp"
+#include "Bot.hpp"
 #include "BotField.hpp"
 #include "Cell.hpp"
 #include "CellPrinter.hpp"
@@ -20,34 +21,37 @@ using namespace std;
 
 
 
+
+
+// objects
+VideoMode vmode = VideoMode::getDesktopMode();
+char const *TITLE = "The Wonderful World";
+unsigned int FRAMERATE_LIMIT = 60u;
+
+
+Color const gridcolor(0xed, 0xd1, 0x9c);
+Color const maincolor(0x5b, 0x3a, 0x29);
+
+Font font;
+unsigned int FONT_SIZE = 40u;
+unsigned int EN_FONT_SIZE = 22u;
+unsigned int EF_FONT_SIZE = 22u;
+
+int const LABEL_LENGTH = 10;
+int const EN_LABEL_LENGTH = 15;
+int const EF_LABEL_LENGTH = 18;
+
+
+int const DEFAULT_FIELD_WIDTH = 80;
+int const DEFAULT_FIELD_HEIGHT = 160;
+
+
+
+
+
+
+
 // init functions
-void init_window();
-void init_field();
-void init_layout();
-void init_printer();
-void init_mapprinter();
-void init_adapter();
-void init_mapadapter();
-void init_font();
-void init_labels();
-
-
-
-void init()
-{
-	init_window();
-	init_field();
-	init_layout();
-	init_printer();
-	init_mapprinter();
-	init_adapter();
-	init_mapadapter();
-	init_font();
-	init_labels();
-
-	return;
-}
-
 void init_window()
 {
 	window.create(vmode, TITLE, Style::None);
@@ -191,20 +195,58 @@ void init_font()
 
 void init_labels()
 {
-	for(int i = 0; i < LABSTR_COUNT; ++i)
-	{
-		labels[i]->setFont( font );
-		labels[i]->setFillColor( maincolor );
-		labels[i]->setCharacterSize(
-			i < 2 ? FONT_SIZE : ( i < LABSTR_COUNT-4 ? EN_FONT_SIZE : EF_FONT_SIZE )
-		);
-		labels[i]->setString( strings[i]->get() );
+	labels[2].getval = []()->string {
+		return string("E summ:    ") + to_string( (int) round( field.summen ) );
+	};
+	labels[3].getval = []()->string {
+		return string("E ground:  ") + to_string( (int) round( field.grounden ) );
+	};
+	labels[4].getval = []()->string {
+		return string("E air:     ") + to_string( (int) round( field.airen ) );
+	};
+	labels[5].getval = []()->string {
+		return string("E plants:  ") + to_string( (int) round( field.planten ) );
+	};
+	labels[6].getval = []()->string {
+		return string("E bots:    ") + to_string( (int) round( field.boten ) );
+	};
+	labels[7].getval = []()->string {
+		return string("E bodyes:  ") + to_string( (int) round( field.bodyen ) );
+	};
+	labels[8].getval = []()->string {
+		return string("E mineral: ") + to_string( (int) round( field.mineralen ) );
+	};
 
-		labels[i]->setOrigin(
-			labels[i]->getLocalBounds().width / 2.0f,
-			labels[i]->getLocalBounds().height
+	labels[9].getval = []()->string {
+		return string("EF air:     ") + to_string( (int) round( Bot::energy_from_air ) / 1000 ) + "k";
+	};
+	labels[10].getval = []()->string {
+		return string("EF plants:  ") + to_string( (int) round( Bot::energy_from_plants ) / 1000 ) + "k";
+	};
+	labels[11].getval = []()->string {
+		return string("EF bodyes:  ") + to_string( (int) round( Bot::energy_from_body ) / 1000 ) + "k";
+	};
+	labels[12].getval = []()->string {
+		return string("EF mineral: ") + to_string( (int) round( Bot::energy_from_minerals ) / 1000 ) + "k";
+	};
+
+	for(int i = 0; i < LABELS_COUNT; ++i)
+	{
+		labels[i].setFont( font );
+		labels[i].setFillColor( maincolor );
+		labels[i].setCharacterSize(
+			i < 2 ? FONT_SIZE : ( i < LABELS_COUNT-4 ? EN_FONT_SIZE : EF_FONT_SIZE )
 		);
-		labels[i]->setPosition(
+
+		labels[i].setString( fills( "fg",
+			i < 2 ? LABEL_LENGTH : ( i < LABELS_COUNT-4 ? EN_LABEL_LENGTH : EF_LABEL_LENGTH )
+		) );
+		labels[i].setOrigin(
+			labels[i].getLocalBounds().width / 2.0f,
+			labels[i].getLocalBounds().height
+		);
+
+		labels[i].setPosition(
 			(*labelslay)(i).to<Vector2f>()
 		);
 	}
@@ -214,6 +256,21 @@ void init_labels()
 }
 
 
+
+void init()
+{
+	init_window();
+	init_field();
+	init_layout();
+	init_printer();
+	init_mapprinter();
+	init_adapter();
+	init_mapadapter();
+	init_font();
+	init_labels();
+
+	return;
+}
 
 void free()
 {

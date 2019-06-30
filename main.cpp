@@ -289,6 +289,7 @@ void draw_mappings()
 // main
 int main( int argc, char *argv[] )
 {
+	// init
 	init();
 	
 
@@ -296,9 +297,7 @@ int main( int argc, char *argv[] )
 	// objects
 	bool
 		up = false,
-		upfield = false,
-		upage = false,
-		upspeed = true,
+		upfield = true,
 		writestat = false;
 
 	double updatespeed = 100.0f; // count per second
@@ -308,13 +307,20 @@ int main( int argc, char *argv[] )
 	Stopwatch<chrono::system_clock> watch;
 	double timepass = 0.0f; // in seconds
 
-	int age = 0;
+	int age = 0.0;
 
 	double
 		summen, grounden,
 		planten, boten;
 
 	Stat stat;
+
+	labels[0].getval = [&]()->string {
+		return string("age:   ") + to_string(age);
+	};
+	labels[1].getval = [&]()->string {
+		return string("speed: ") + cutzero( to_string(updatespeed) );
+	};
 
 
 
@@ -345,9 +351,9 @@ int main( int argc, char *argv[] )
 				case Keyboard::R:
 					field.reset();
 					age = 0;
+					labels[0].change();
 					up = false;
 					upfield = true;
-					upage = true;
 					stat.write("resetstat.txt");
 					stat.reset();
 					break;
@@ -359,6 +365,7 @@ int main( int argc, char *argv[] )
 
 				case Keyboard::G:
 					field.ravage_ground(0.1);
+					upfield = true;
 					break;
 
 				case Keyboard::H:
@@ -386,7 +393,7 @@ int main( int argc, char *argv[] )
 					{
 						increase_speed(updatespeed);
 						updateperiod = 1.0 / updatespeed;
-						upspeed = true;
+						labels[1].change();
 					}
 					break;
 
@@ -395,7 +402,7 @@ int main( int argc, char *argv[] )
 					{
 						reduce_speed(updatespeed);
 						updateperiod = 1.0 / updatespeed;
-						upspeed = true;
+						labels[1].change();
 					}
 					break;
 
@@ -480,79 +487,24 @@ int main( int argc, char *argv[] )
 				}
 				while( stage >= updateperiod );
 				upfield = true;
-				upage = true;
 				writestat = true;
 			}
 		}
 
-			// up strings
-		if( upage )
-		{
-			agestring = "age: " + to_string(age);
-			upage = false;
-		}
-
-		if( upspeed )
-		{
-			speedstring = "speed: " + cutzero( to_string(updatespeed) );
-			upspeed = false;
-		}
-
 		if( upfield )
 		{
-			summenstring =
-				"E summ:    " +
-				to_string( int( round(field.summen) ) );
-
-			groundenstring =
-				"E ground:  " +
-				 to_string( int( round(field.grounden) ) );
-
-			airenstring =
-				"E air:     " +
-				 to_string( int( round(field.airen) ) );
-
-			plantenstring =
-				"E plants:  " +
-				to_string( int( round(field.planten) ) );
-
-			botenstring =
-				"E bots:    " +
-				to_string( int( round(field.boten) ) );
-
-			bodyenstring =
-				"E bodyes:  " +
-				to_string( int( round(field.bodyen) ) );
-
-			mineralenstring =
-				"E mineral: " +
-				to_string( int( round(field.mineralen) ) );
-
-			efairstring =
-				"EF air:     " +
-				to_string( int( round(Bot::energy_from_air) ) );
-
-			efplantsstring =
-				"EF plants:  " +
-				to_string( int( round(Bot::energy_from_plants) ) );
-
-			efbodystring =
-				"EF bodyes:  " +
-				to_string( int( round(Bot::energy_from_body) ) );
-
-			efmineralsstring =
-				"EF mineral: " +
-				to_string( int( round(Bot::energy_from_minerals) ) );
+			for(int i = 2; i < LABELS_COUNT; ++i)
+				labels[i].change();
 
 			adapter.update();
 			mapadapter.update();
 			upfield = false;
 		}
 
-			// update text labels
-		for(int i = 0; i < LABSTR_COUNT; ++i)
-			if( strings[i]->isChanged() )
-				labels[i]->setString( strings[i]->get() );
+
+			// update labels
+		for(int i = 0; i < LABELS_COUNT; ++i)
+			labels[i].update();
 
 
 
@@ -560,8 +512,8 @@ int main( int argc, char *argv[] )
 		window.clear( Color(backgroundcolor) );
 		window.draw( adapter );
 		draw_mappings();
-		for(int i = 0; i < LABSTR_COUNT; ++i)
-			window.draw(*labels[i]);
+		for(int i = 0; i < LABELS_COUNT; ++i)
+			window.draw(labels[i]);
 		window.display();
 	}
 	

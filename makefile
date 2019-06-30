@@ -48,7 +48,7 @@ define.o: define.cpp declare.hpp BotField.hpp Cell.hpp Plant.hpp Bot.hpp Body.hp
 
 
 
-init.o: init.cpp init.hpp declare.hpp BotField.hpp CellPrinter.hpp
+init.o: init.cpp init.hpp declare.hpp Bot.hpp BotField.hpp CellPrinter.hpp
 	g++ $(CFLAGS) -o init.o init.cpp
 
 
