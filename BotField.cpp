@@ -62,6 +62,7 @@ void BotField::init_botfield(int width, int height)
 {
 	init(width, height);
 	init_mapping(*this, mapping, MAPPING_KOFF);
+	worker_.set(w, h);
 	set_cells_();
 	return;
 }
@@ -91,9 +92,8 @@ void BotField::reset()
 // update
 void BotField::update()
 {
-	update_environment_();
 	update_entities_();
-	calculate_energy_();
+	update_environment_();
 	return;
 }
 
@@ -101,7 +101,7 @@ void BotField::update()
 
 
 // enter
-bool BotField::push(int x, int y, Bot *bot, bool calc)
+bool BotField::push(int x, int y, Bot *bot)
 {
 	auto *cell = &at(x, y);
 	if(cell->bot || cell->body)
@@ -110,8 +110,6 @@ bool BotField::push(int x, int y, Bot *bot, bool calc)
 	bot->x = x;
 	bot->y = y;
 	cell->bot = bot;
-	if(calc)
-		calculate_energy_();
 	return true;
 }
 
@@ -121,16 +119,14 @@ bool BotField::push(int x, int y, Plant *plant)
 	if(cell->plant || cell->bot || cell->body)
 		return false;
 	cell->plant = plant;
-	calculate_energy_();
 	return true;
 }
 
-void BotField::push(int x, int y, bool calc)
+void BotField::push(int x, int y)
 {
 	auto &cell = at(x, y);
-	cell.energy = Cell::DEFAULT_GROUND_ENERGY;
-	if(calc)
-		calculate_energy_();
+	if(cell.energy < Cell::DEFAULT_GROUND_ENERGY)
+		cell.energy = Cell::DEFAULT_GROUND_ENERGY;
 	return;
 }
 
@@ -145,10 +141,9 @@ void BotField::random_fill(int cellcount)
 	{
 		y = heightdis(dre);
 		x = widthdis(dre)*2 + (y%2 ? 1 : 0);
-		push(x, y, false);
+		push(x, y);
 	}
 
-	calculate_energy_();
 	return;
 }
 
@@ -157,7 +152,6 @@ void BotField::ravage_ground(double k)
 	double delta;
 	for(auto b = begin(), e = end(); b != e; ++b)
 		b->energy *= k;
-	calculate_energy_();
 	return;
 }
 
@@ -172,13 +166,61 @@ void BotField::random_bots(int count)
 		bot->energy = bot->budprice();
 		y = heightdis(dre);
 		x = widthdis(dre)*2 + (y%2 ? 1 : 0);
-		if(push(x, y, bot, false))
+		if(push(x, y, bot))
 			bot = new Bot;
 	}
 	delete bot;
-	calculate_energy_();
 	return;
 }
+
+
+void BotField::calculate_energy()
+{
+	// Почему-то при распараллеливании производительность уменьшается
+
+	grounden = airen =
+		planten = boten =
+		bodyen = mineralen = 0.0;
+	mapping.zeroize();
+
+
+
+	auto athis = this;
+	// worker_.update = [athis](int x, int y)->void
+	auto fun = [athis](int x, int y)->void
+	{
+		auto &cell = athis->at(x, y);
+		MapUnit &mp = athis->mapping.at( map( {x, y}, MAPPING_KOFF ) );
+		++mp.density;
+
+		athis->grounden += cell.energy, mp.grounden += cell.energy;
+		athis->airen += cell.airenergy, mp.airen += cell.airenergy;
+
+		if(cell.plant)
+			athis->planten += cell.plant->energy,
+			mp.planten += cell.plant->energy;
+		if(cell.bot)
+			athis->boten += cell.bot->energy,
+			mp.boten += cell.bot->energy;
+		if(cell.body)
+			athis->bodyen += cell.body->energy,
+			mp.bodyen += cell.body->energy;
+		athis->mineralen += cell.mineral.hidenergy + cell.mineral.energy,
+		mp.mineralen += cell.mineral.hidenergy + cell.mineral.energy;
+
+		return;
+	};
+	// worker_();
+
+	int x, y;
+	for(int i = 0; i < w*h; ++i)
+		getxy(i, x, y), fun(x, y);
+
+	summen = grounden + airen + planten + boten + bodyen + mineralen;
+	return;
+}
+
+
 
 
 
@@ -195,6 +237,8 @@ inline bool BotField::valid(PointI const &p, int dir)
 
 void BotField::update_environment_()
 {
+	// А здесь при распараллеливании производительность заметно увеличивается
+
 	// prepare
 	if( smoothf_.w != w || smoothf_.h != h )
 	{
@@ -202,141 +246,120 @@ void BotField::update_environment_()
 			smoothf_.free();
 		smoothf_.init(w, h);
 	}
-
-
-	// ground
 	smoothf_.zeroize();
 
-	double delta;
-	PointI p;
 
-	for(auto b = begin(), e = end(); b != e; ++b)
+	// with worker
+	auto athis = this;
+	auto afun = &BotField::update_ground_;
+	worker_.update = [=](int x, int y) { (athis->*afun)(x, y); };
+	worker_();
+
+	worker_.update = [=](int x, int y)->void
 	{
-		p = getxy(b);
+		athis->at(x, y).energy += athis->smoothf_.at(x, y).ground;
+		athis->at(x, y).airenergy += athis->smoothf_.at(x, y).air;
+		return;
+	};
+	worker_();
 
-		// to air
-		delta = b->energy * Cell::TOAIR_FACTOR;
-		b->energy -= delta;
-		b->airenergy += delta;
+
+	// no worker
+	// int x, y;
+	// for(int i = 0; i < w*h; ++i)
+		// getxy(i, x, y), update_ground_(x, y);
+
+	// for(int i = 0; i < w*h; ++i)
+		// d[i].energy += smoothf_.d[i].ground,
+		// d[i].airenergy += smoothf_.d[i].air;
+	
+
+	return;
+}
+
+void BotField::update_ground_(int x, int y)
+{
+	double grounddelta, airdelta;
+	double &sground = smoothf_.at(x, y).ground;
+	double &sair = smoothf_.at(x, y).air;
+	auto &cell = at(x, y);
+
+	grounddelta = cell.energy * Cell::TOAIR_FACTOR;
+	sground -= grounddelta;
+	sair += grounddelta;
 
 		// to other
-		delta = b->energy * Cell::SMOOTH_FACTOR;
-		b->energy -= delta;
-
-		for(int i = 0; i < OFFSET_COUNT; ++i)
-		{
-			if(!valid(p, i))
-				b->energy += delta * b->temp / b->tempenv;
-			else
-				smoothf_.neart(p, i) += delta * neart(p, i).temp / b->tempenv;
-		}
-	}
-
-	for(int i = 0; i < w*h; ++i)
-		d[i].energy += smoothf_.d[i];
-	
-	
+	grounddelta = cell.energy * Cell::SMOOTH_FACTOR;
+	sground -= grounddelta;
 
 	// air
-	smoothf_.zeroize();
-	for(auto b = begin(), e = end(); b != e; ++b)
+	airdelta = cell.airenergy * Cell::AIRSMOOTH_FACTOR;
+	sair -= airdelta;
+
+	for(int i = 0; i < OFFSET_COUNT; ++i)
 	{
-		p = getxy(b);
+		// ground
+		if(!valid({x, y}, i))
+			sground += grounddelta * cell.temp / cell.tempenv;
+		else
+			smoothf_.neart(x, y, i).ground += grounddelta * neart(x, y, i).temp / cell.tempenv;
 
-		delta = b->airenergy * Cell::AIRSMOOTH_FACTOR;
-		b->airenergy -= delta;
-
-		for(int i = 0; i < OFFSET_COUNT; ++i)
-		{
-			if(!valid(p, i))
-				b->airenergy += delta * b->airtemp / b->airtempenv;
-			else
-				smoothf_.neart(p, i) += delta * neart(p, i).airtemp / b->airtempenv;
-		}
+		// air
+		if(!valid({x, y}, i))
+			sair += airdelta * cell.airtemp / cell.airtempenv;
+		else
+			smoothf_.neart(x, y, i).air += airdelta * neart(x, y, i).airtemp / cell.airtempenv;
 	}
-
-	for(int i = 0; i < w*h; ++i)
-		d[i].airenergy += smoothf_.d[i];
-
 
 
 	return;
 }
+
+
 
 void BotField::update_entities_()
 {
-	++age;
+	// Почему-то при распараллеливании производительность уменьшается
 
-	double delta;
-	Plant *plant;
-	Body *body;
+	++age;
 
 	int x, y;
 	for(auto b = begin(), e = end(); b != e; ++b)
-	{
-		if(b->bot && b->bot->worldage < age)
-			b->bot->update(*this);
+		getxy(b, x, y), update_entity_(x, y);
 
-		// plant
-		if(b->plant)
-			b->plant->update(*this);
-
-		// body
-		if(b->body)
-			b->body->update(*b);
-
-		b->mineral.update(*b);
-
-		// saw plant
-		if(
-			!b->plant &&
-			(
-				b->energy /
-				Cell::DEFAULT_GROUND_ENERGY
-			) * Plant::BURN_CHANCE > (double)rand() / RAND_MAX
-		)
-		{
-			getxy(b, x, y);
-			b->plant = new Plant{ x, y, 0.0 };
-		}
-	}
-
-
+	// auto athis = this;
+	// auto afun = &BotField::update_entity_;
+	// worker_.update = [=](int x, int y) { (athis->*afun)(x, y); };
+	// worker_();
 
 	return;
 }
 
-
-void BotField::calculate_energy_()
+void BotField::update_entity_(int x, int y)
 {
-	grounden = airen =
-		planten = boten =
-		bodyen = mineralen = 0.0;
-	mapping.zeroize();
+	auto &cell = at(x, y);
 
-	MapUnit *mp;
-	for(auto b = begin(), e = end(); b != e; ++b)
-	{
-		mp = &mapping.at( map( getxy(b), MAPPING_KOFF ) );
-		++mp->density;
+	// bot
+	if(cell.bot && cell.bot->worldage < age)
+		cell.bot->update(*this);
 
-		grounden += b->energy, mp->grounden += b->energy;
-		airen += b->airenergy, mp->airen += b->airenergy;
+	// plant
+	if(cell.plant)
+		cell.plant->update(*this);
+	else if(
+		(cell.energy / Cell::DEFAULT_GROUND_ENERGY) *
+		Plant::BURN_CHANCE > (double)rand() / RAND_MAX
+	)
+		cell.plant = new Plant{ x, y, 0.0 };
 
-		if(b->plant)
-			planten += b->plant->energy,
-			mp->planten += b->plant->energy;
-		if(b->bot)
-			boten += b->bot->energy,
-			mp->boten += b->bot->energy;
-		if(b->body)
-			bodyen += b->body->energy,
-			mp->bodyen += b->body->energy;
-		mineralen += b->mineral.hidenergy + b->mineral.energy,
-		mp->mineralen += b->mineral.hidenergy + b->mineral.energy;
-	}
+	// body
+	if(cell.body)
+		cell.body->update(cell);
 
-	summen = grounden + airen + planten + boten + bodyen + mineralen;
+	// mineral
+	cell.mineral.update(cell);
+
+
 	return;
 }
 

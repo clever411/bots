@@ -297,8 +297,7 @@ int main( int argc, char *argv[] )
 	// objects
 	bool
 		up = false,
-		upfield = true,
-		writestat = false;
+		upfield = true;
 
 	double updatespeed = 100.0f; // count per second
 	double updateperiod = 1.0 / updatespeed;
@@ -307,16 +306,14 @@ int main( int argc, char *argv[] )
 	Stopwatch<chrono::system_clock> watch;
 	double timepass = 0.0f; // in seconds
 
-	int age = 0.0;
-
 	double
 		summen, grounden,
 		planten, boten;
 
 	Stat stat;
 
-	labels[0].getval = [&]()->string {
-		return string("age:   ") + to_string(age);
+	labels[0].getval = []()->string {
+		return string("age:   ") + to_string(field.age);
 	};
 	labels[1].getval = [&]()->string {
 		return string("speed: ") + 
@@ -354,7 +351,6 @@ int main( int argc, char *argv[] )
 
 				case Keyboard::R:
 					field.reset();
-					age = 0;
 					labels[0].change();
 					up = false;
 					upfield = true;
@@ -478,25 +474,26 @@ int main( int argc, char *argv[] )
 				{
 					stage -= updateperiod;
 					field.update();
-					++age;
-					stat.add( {
-						(float)field.summen,
-						(float)field.grounden,
-						(float)field.airen,
-						(float)field.planten,
-						(float)field.boten,
-						(float)field.bodyen,
-						(float)field.mineralen
-					} );
+					// stat.add( {
+						// (float)field.summen,
+						// (float)field.grounden,
+						// (float)field.airen,
+						// (float)field.planten,
+						// (float)field.boten,
+						// (float)field.bodyen,
+						// (float)field.mineralen
+					// } );
 				}
 				while( stage >= updateperiod );
 				upfield = true;
-				writestat = true;
 			}
 		}
 
 		if( upfield )
 		{
+			field.calculate_energy();
+
+			labels[0].change(); // age label
 			for(int i = 2; i < LABELS_COUNT; ++i)
 				labels[i].change();
 

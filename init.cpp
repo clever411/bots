@@ -33,7 +33,7 @@ Color const gridcolor(0xed, 0xd1, 0x9c);
 Color const maincolor(0x5b, 0x3a, 0x29);
 
 Font font;
-unsigned int FONT_SIZE = 40u;
+unsigned int FONT_SIZE = 35u;
 unsigned int EN_FONT_SIZE = 22u;
 unsigned int EF_FONT_SIZE = 22u;
 
@@ -42,8 +42,8 @@ int const EN_LABEL_LENGTH = 15;
 int const EF_LABEL_LENGTH = 18;
 
 
-int const DEFAULT_FIELD_WIDTH = 80;
-int const DEFAULT_FIELD_HEIGHT = 160;
+int const DEFAULT_FIELD_WIDTH = 120;
+int const DEFAULT_FIELD_HEIGHT = 240;
 
 
 
@@ -130,7 +130,7 @@ void init_printer()
 	printer.bodygrad.colors[0].a = 0xbb;
 	printer.bodygrad.colors[1].a = 0xff;
 
-	printer.mineralgrad = Gradient::DARKLING_RED;
+	printer.mineralgrad = Gradient::DARKLING_BLUE;
 	printer.mineralgrad.colors[0].a = 0x33;
 	printer.mineralgrad.colors[1].a = 0x77;
 
@@ -196,32 +196,60 @@ void init_font()
 void init_labels()
 {
 	labels[2].getval = []()->string {
-		return string("E summ:    ") + to_string( (int) round( field.summen ) );
+		return string("E summ:   ") + (
+			field.summen >= 100000.0 ?
+			to_string( (int) round( field.summen/1000 ) ) + "k" :
+			to_string( (int) round( field.summen ) )
+		);
 	};
 	labels[3].getval = []()->string {
-		return string("E ground:  ") + to_string( (int) round( field.grounden ) );
+		return string("E ground: ") + (
+			field.grounden >= 100000.0 ?
+			to_string( (int) round( field.grounden/1000 ) ) + "k" :
+			to_string( (int) round( field.grounden ) )
+		);
 	};
 	labels[4].getval = []()->string {
-		return string("E air:     ") + to_string( (int) round( field.airen ) );
+		return string("E air:    ") + (
+			field.airen >= 100000.0 ?
+			to_string( (int) round( field.airen/1000 ) ) + "k" :
+			to_string( (int) round( field.airen ) )
+		);
 	};
 	labels[5].getval = []()->string {
-		return string("E plants:  ") + to_string( (int) round( field.planten ) );
+		return string("E plants: ") + (
+			field.planten >= 100000.0 ?
+			to_string( (int) round( field.planten/1000 ) ) + "k" :
+			to_string( (int) round( field.planten ) )
+		);
 	};
 	labels[6].getval = []()->string {
-		return string("E bots:    ") + to_string( (int) round( field.boten ) );
+		return string("E bots:   ") + (
+			field.boten >= 100000.0 ?
+			to_string( (int) round( field.boten/1000 ) ) + "k" :
+			to_string( (int) round( field.boten ) )
+		);
 	};
 	labels[7].getval = []()->string {
-		return string("E bodyes:  ") + to_string( (int) round( field.bodyen ) );
+		return string("E bodyes:  ") + (
+			field.bodyen >= 100000.0 ?
+			to_string( (int) round( field.bodyen/1000 ) ) + "k" :
+			to_string( (int) round( field.bodyen ) )
+		);
 	};
 	labels[8].getval = []()->string {
-		return string("E mineral: ") + to_string( (int) round( field.mineralen ) );
+		return string("E mineral: ") + (
+			field.mineralen >= 100000.0 ?
+			to_string( (int) round( field.mineralen/1000 ) ) + "k" :
+			to_string( (int) round( field.mineralen ) )
+		);
 	};
 
 	labels[9].getval = []()->string {
-		return string("EF air:     ") + to_string( (int) round( Bot::energy_from_air ) / 1000 ) + "k";
+		return string("EF air:    ") + to_string( (int) round( Bot::energy_from_air ) / 1000 ) + "k";
 	};
 	labels[10].getval = []()->string {
-		return string("EF plants:  ") + to_string( (int) round( Bot::energy_from_plants ) / 1000 ) + "k";
+		return string("EF plants: ") + to_string( (int) round( Bot::energy_from_plants ) / 1000 ) + "k";
 	};
 	labels[11].getval = []()->string {
 		return string("EF bodyes:  ") + to_string( (int) round( Bot::energy_from_body ) / 1000 ) + "k";

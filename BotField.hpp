@@ -4,6 +4,7 @@
 #include <list>
 #include <random>
 
+#include <clever/FieldParallelWork.hpp>
 #include <clever/HexagonField.hpp>
 
 
@@ -32,7 +33,7 @@ struct MapUnit
 
 struct BotField: public clever::HexagonField<Cell>
 {
-	static constexpr int const MAPPING_KOFF = 5;
+	static constexpr int const MAPPING_KOFF = 6;
 
 	// members
 	int age = 0;
@@ -63,13 +64,15 @@ struct BotField: public clever::HexagonField<Cell>
 	void reset();
 	void update();
 
-	bool push(int x, int y, Bot *bot, bool calc = true);
+	bool push(int x, int y, Bot *bot);
 	bool push(int x, int y, Plant *plant);
-	void push(int x, int y, bool calc = true);
+	void push(int x, int y);
 
 	void random_fill(int cellcount);
 	void ravage_ground(double k);
 	void random_bots(int count);
+	
+	void calculate_energy();
 
 
 
@@ -78,13 +81,21 @@ private:
 	inline bool valid(clever::PointI const &p, int dir);
 
 	void update_environment_();
-	void update_entities_();
+	void update_ground_(int x, int y);
 
-	void calculate_energy_();
+	void update_entities_();
+	void update_entity_(int x, int y);
 
 	void set_cells_();
 	
-	clever::HexagonField<double> smoothf_ = {0, 0, nullptr};
+
+	struct SmoothUnit
+	{
+		double ground, air;
+	};
+
+	clever::HexagonField<SmoothUnit> smoothf_ = {0, 0, nullptr};
+	clever::HexagonFieldParallelWork<8> worker_;
 
 
 

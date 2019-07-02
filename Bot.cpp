@@ -216,7 +216,7 @@ bool Bot::eat(field_type &f, neuron_type arg)
 			double take = min(maxenergy() - energy, gen.plant());
 			if( !( plant.energy > take ) )
 			{
-				energy += plant.energy,
+				energy += plant.energy;
 				energy_from_plants += plant.energy;
 				delete toc.plant;
 				toc.plant = nullptr;
@@ -224,7 +224,7 @@ bool Bot::eat(field_type &f, neuron_type arg)
 			else
 			{
 				plant.energy -= take;
-				energy += take,
+				energy += take;
 				energy_from_plants += take;
 			}
 
@@ -242,7 +242,7 @@ bool Bot::eat(field_type &f, neuron_type arg)
 			);
 			if( !( body.energy > delta ) )
 			{
-				energy += body.energy,
+				energy += body.energy;
 				energy_from_body += body.energy;
 				delete toc.body;
 				toc.body = nullptr;
@@ -250,7 +250,7 @@ bool Bot::eat(field_type &f, neuron_type arg)
 			else
 			{
 				body.energy -= delta;
-				energy += delta,
+				energy += delta;
 				energy_from_body += delta;
 			}
 
@@ -280,7 +280,7 @@ bool Bot::eat(field_type &f, neuron_type arg)
 			auto &to = f.at(x, y);
 			double const delta = to.airenergy * gen.air();
 			to.airenergy -= delta;
-			energy += delta,
+			energy += delta;
 			energy_from_air += delta;
 		}
 		return true;
