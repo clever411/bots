@@ -1,5 +1,5 @@
-#ifndef CLEVER_FIELD_HPP
-#define CLEVER_FIELD_HPP
+#ifndef CLEVER_HEXAGON_FIELD_HPP
+#define CLEVER_HEXAGON_FIELD_HPP
 
 #include <cstring>
 #include <iterator>
@@ -7,7 +7,6 @@
 #include <utility>
 
 #include <clever/HelpFunction.hpp>
-#include <clever/IostreamFunction.hpp>
 #include <clever/Point.hpp>
 #include <clever/Type.hpp>
 
@@ -17,16 +16,16 @@
 
 namespace clever
 {
-	
-	
-	
-	
-	
-template<typename ValueType>
-struct Field
+
+
+
+
+
+template<typename T>
+struct HexagonField
 {
 	// types
-	typedef ValueType value_type;
+	typedef T value_type;
 
 
 
@@ -41,8 +40,8 @@ private:
 		std::bidirectional_iterator_tag,
 		typename IF<
 			std::is_same<IsConst, Const>::value,
-			Field::value_type const,
-			Field::value_type
+			HexagonField::value_type const,
+			HexagonField::value_type
 		>::value_type
 	>
 	{
@@ -52,7 +51,7 @@ private:
 
 		typedef typename IF<
 			std::is_same<IsConst, Const>::value,
-			Field const, Field
+			HexagonField const, HexagonField
 		>::value_type field_type;
 
 
@@ -65,8 +64,8 @@ private:
 
 		template<class C, class TM>
 		Iterator &operator=(Iterator<C, TM> const &rhs);
-
-
+		
+		
 
 		// move
 		Iterator &operator++();
@@ -83,11 +82,10 @@ private:
 
 
 
-
 		// at
 		inline value_type &operator*() const;
 		inline value_type *operator->() const;
-		
+
 		inline value_type *base() const;
 		inline PointI point() const;
 
@@ -110,12 +108,12 @@ private:
 		// конца итератор - нельзя, используй для этого либо isend,
 		// либо iterendc
 		Iterator iterend() const;
-		inline Iterator const &iterendc() const;
+		static inline Iterator const &citerend();
 		
 
 
 	private:
-		friend class Field;
+		friend class HexagonField;
 
 		static Iterator create_iterend();
 
@@ -140,7 +138,8 @@ private:
 		// data-members
 		int top, left, width, height, fw, fh;
 		int x, y;
-		value_type *d, *fd;
+		mutable value_type *d;
+		value_type *fd;
 
 
 
@@ -160,61 +159,46 @@ public:
 	
 	
 	
-	// static const members
-	static constexpr int const OFFSET_COUNT = 8;
+	
+	
+	
+	
+	
+	// static constants
+	static constexpr int const OFFSET_COUNT = 6;
 	static constexpr int const OFFSET[OFFSET_COUNT][2] = {
-		{ -1, -1 }, { 0, -1 }, { 1, -1 }, //  Directions:
-		                       { 1, 0  }, //  0  1  2
-		                       { 1, 1  }, //  7  *  3
-		            { 0, 1  },            //  6  5  4
-		{ -1, 1  },                       // 
-		{ -1, 0  },                       // 
+		{ 0, -2 }, { 1, -1 }, { 1, 1 },   // начиная сверху,
+		{ 0, 2 },  { -1, 1 }, { -1, -1 }  // по часовой стрелке
 	};
 	
-
-
-
-
+	
+	
+	
+	
 	// data-members
-	int w = 0, h = 0;
-	value_type *d = nullptr;
+	int w, h;
+	value_type *d;
 	
 	
 	
 	
 	
 	// init, free
-	inline Field &init();
-	inline Field &init(int width, int height);
-	inline Field &free();
+	inline HexagonField &init();
+	inline HexagonField &init(int width, int height);
+	inline HexagonField &free();
 
 
 
-	// clear & zeroize
-	inline Field &clear();
-	inline Field &clear(value_type const &value);
-
-	inline Field &clearline(int line);
-	inline Field &clearline(
-		value_type const &value, int line
-	);
-
-	inline Field &clearlines(
-		int bline, int nline
-	);
-	inline Field &clearlines(
-		value_type const &value,
-		int bline, int nline
-	);
-
-	inline Field &zeroize();
-	inline Field &zeroize(int line);
-	inline Field &zeroize(int bline, int nline);
+	// clear, zeroize
+	inline HexagonField &clear();
+	inline HexagonField &clear(value_type const &val);
+	inline HexagonField &zeroize();
 
 
 
 
-
+	
 	// check vlaid
 		// simple
 	inline bool isValid(int x, int y) const;
@@ -232,15 +216,11 @@ public:
 
 
 
-
-
 	// correct
 	inline void correct(int &x, int &y) const;
 
 	template<class Point>
 	inline void correct(Point &p) const;
-
-
 
 
 
@@ -258,7 +238,7 @@ public:
 
 
 
-	// geometry
+	// geometry origin
 	inline PointF origin(int x, int y, float a) const;
 	inline PointF origin(PointI const &p, float a) const;
 	inline PointF origin(value_type const *p, float a) const;
@@ -336,12 +316,6 @@ public:
 
 
 
-		// operator at
-	inline value_type const *operator[](int y) const;
-	inline value_type *operator[](int y);
-
-
-
 
 
 	// iterators
@@ -398,23 +372,19 @@ public:
 
 
 	template<class Ostream>
-	Ostream &print(
-		Ostream &os,
-		std::string const &elterm = "\t",
-		std::string const &lnterm = "\n"
-	) const;
-	
-	
-	
-	
-
-};	
+	Ostream &print( Ostream &os ) const;
 
 
 
 
 
-#include "Field_implement.hpp"
+};
+
+
+
+
+
+#include "HexagonField_implement.hpp"
 
 
 
@@ -427,11 +397,13 @@ public:
 
 
 template<class Ostream, typename ValueType>
-Ostream &operator<<(Ostream &os, clever::Field<ValueType> const &toprint)
+Ostream &operator<<(Ostream &os, clever::HexagonField<ValueType> const &toprint)
 {
 	toprint.print(os);
 	return os;
 }
+
+
 
 
 

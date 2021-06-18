@@ -20,12 +20,13 @@ struct Bot;
 struct MapUnit
 {
 	double
-		grounden = 0.0,
-		airen = 0.0,
-		planten = 0.0,
-		boten = 0.0,
-		bodyen = 0.0, 
+		grounden  = 0.0,
+		airen     = 0.0,
+		planten   = 0.0,
+		boten     = 0.0,
+		bodyen    = 0.0,
 		mineralen = 0.0;
+
 	int density = 0;
 };
 
@@ -39,12 +40,12 @@ struct BotField: public clever::HexagonField<Cell>
 	int age = 0;
 
 	double
-		summen = 0.0,
-		grounden = 0.0,
-		airen = 0.0,
-		planten = 0.0,
-		boten = 0.0,
-		bodyen = 0.0, 
+		summen    = 0.0,
+		grounden  = 0.0,
+		airen     = 0.0,
+		planten   = 0.0,
+		boten     = 0.0,
+		bodyen    = 0.0,
 		mineralen = 0.0;
 
 	HexagonField<MapUnit> mapping;

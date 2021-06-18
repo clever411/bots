@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-#include "Cell.hpp"
+#include <field/Cell.hpp>
 #include "Plant.hpp"
 
 

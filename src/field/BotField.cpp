@@ -5,12 +5,10 @@
 
 #include <clever/HelpFunction.hpp>
 
-#include "Body.hpp"
-#include "Bot.hpp"
+#include <entities/all.hpp>
+#include <utils/Mapping.hpp>
+
 #include "Cell.hpp"
-#include "Mapping.hpp"
-#include "Mineral.hpp"
-#include "Plant.hpp"
 
 
 using namespace clever;
@@ -149,7 +147,6 @@ void BotField::random_fill(int cellcount)
 
 void BotField::ravage_ground(double k)
 {
-	double delta;
 	for(auto b = begin(), e = end(); b != e; ++b)
 		b->energy *= k;
 	return;

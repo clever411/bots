@@ -2,7 +2,8 @@
 
 #include <cmath>
 
-#include "Cell.hpp"
+#include <field/Cell.hpp>
+
 #include "Mineral.hpp"
 
 

@@ -8,16 +8,14 @@
 #include <clever/Stopwatch.hpp>
 #include <clever/SFML/HelpFunction.hpp>
 
+#include <entities/all.hpp>
+#include <field/BotField.hpp>
+#include <field/Cell.hpp>
+#include <utils/CellPrinter.hpp>
+#include <utils/Stat.hpp>
+
 #include "declare.hpp"
 #include "init.hpp"
-#include "BotField.hpp"
-#include "Cell.hpp"
-#include "Plant.hpp"
-#include "Bot.hpp"
-#include "Body.hpp"
-#include "Mineral.hpp"
-#include "CellPrinter.hpp"
-#include "Stat.hpp"
 
 
 using namespace clever;
@@ -306,9 +304,9 @@ int main( int argc, char *argv[] )
 	Stopwatch<chrono::system_clock> watch;
 	double timepass = 0.0f; // in seconds
 
-	double
-		summen, grounden,
-		planten, boten;
+	// double
+		// summen, grounden,
+		// planten, boten;
 
 	Stat stat;
 
@@ -328,10 +326,10 @@ int main( int argc, char *argv[] )
 
 
 	// main loop
-	Event event;
-	watch.start();
+	Event  event;
 	PointI pos;
-	Cell *cell;
+	// Cell   *cell;
+	watch.start();
 	while(window.isOpen())
 	{
 		// handle events
@@ -379,7 +377,7 @@ int main( int argc, char *argv[] )
 					);
 					if(field.isValid(pos))
 					{
-						cell = &field.at(pos);
+						// cell = &field.at(pos);
 						print(field.at(pos));
 					}
 					break;
@@ -436,7 +434,7 @@ int main( int argc, char *argv[] )
 			);
 			if(field.isValid(pos))
 			{
-				auto &cell = field.at(pos);
+				// auto &cell = field.at(pos);
 				upfield = true;
 				if(isbkey)
 				{

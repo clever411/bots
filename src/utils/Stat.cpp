@@ -19,7 +19,7 @@ void Stat::add(Unit const &unit)
 void Stat::write(char const *filename) const
 {
 	auto file = fopen(filename, "w");
-	for(int i = 0; i < code_.size(); ++i)
+	for(int i = 0; i < (int)code_.size(); ++i)
 	{
 		fprintf(
 			file, "%i %f %f %f %f %f %f %f\n", 

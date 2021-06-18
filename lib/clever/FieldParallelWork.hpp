@@ -27,6 +27,8 @@ namespace clever
 // 3. Установить update-функцию 
 // 4. Можно вызывать work или operator() — это одно и то же 
 //
+// P.S. Лучше уменьшать время существования этого объекта
+
 template<int THREAD_N, class Implement>
 class FieldParallelWork
 {

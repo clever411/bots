@@ -2,11 +2,12 @@
 
 #include <iostream>
 
-#include "BotField.hpp"
-#include "Cell.hpp"
-#include "Plant.hpp"
+#include <field/BotField.hpp>
+#include <field/Cell.hpp>
+
 #include "Body.hpp"
 #include "Mineral.hpp"
+#include "Plant.hpp"
 
 
 using namespace clever;
@@ -92,7 +93,7 @@ void Bot::update(field_type &f)
 	
 
 	// on brain
-	for(int count = 0; count < REPEAT_COMMAND_COUNT; ++count);
+	for(int count = 0; count < REPEAT_COMMAND_COUNT; ++count)//; RIGHT?
 	{
 		switch(getaction(brain[p]))
 		{

@@ -3,8 +3,8 @@
 #include <algorithm>
 #include <random>
 
-#include "BotField.hpp"
-#include "Cell.hpp"
+#include <field/BotField.hpp>
+#include <field/Cell.hpp>
 
 
 using namespace std;

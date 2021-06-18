@@ -541,7 +541,7 @@ template<typename ValueType>
 inline typename HexagonField<ValueType>::iterator_type const &
 HexagonField<ValueType>::iterend() const
 {
-	return iterator_type::enditer();
+	return iterator_type::citerend();
 }
 
 
@@ -564,7 +564,7 @@ template<typename ValueType>
 inline typename HexagonField<ValueType>::const_iterator_type const &
 HexagonField<ValueType>::citerend() const
 {
-	return const_iterator_type::enditer();
+	return const_iterator_type::xiterend();
 }
 
 
@@ -892,7 +892,7 @@ HexagonField<ValueType>::Iterator<IsConst, TapeMode>::iterend() const
 template<typename ValueType>
 template<class IsConst, class TapeMode>
 inline HexagonField<ValueType>::Iterator<IsConst, TapeMode> const &
-HexagonField<ValueType>::Iterator<IsConst, TapeMode>::iterendc() const
+HexagonField<ValueType>::Iterator<IsConst, TapeMode>::citerend()
 {
 	static Iterator const singleton = create_iterend();
 	return singleton;

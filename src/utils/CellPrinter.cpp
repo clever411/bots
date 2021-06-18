@@ -2,12 +2,9 @@
 
 #include <iostream>
 
-#include "Cell.hpp"
-#include "Plant.hpp"
-#include "Bot.hpp"
-#include "BotField.hpp"
-#include "Body.hpp"
-#include "Mineral.hpp"
+#include <entities/all.hpp>
+#include <field/BotField.hpp>
+#include <field/Cell.hpp>
 
 
 using namespace clever;

@@ -1,92 +1,52 @@
-EXECUTABLE = main
-CFLAGS = -std=gnu++17 -c -O5 -DDEBUG -I./library
-LDFLAGS = -L./library/clever/lib
-LIBS = -lsfml-graphics -lsfml-system -lsfml-window -pthread -lclever-layout -lclever-gradient
+cflags  := -std=gnu++17 -c -Wall
+ldflags := -L./lib/clever/lib
+libs    := -lsfml-graphics -lsfml-system -lsfml-window -pthread -lclever-layout -lclever-gradient
 
 
 
 
 
 # main
-all: $(EXECUTABLE)
+build: main
 
-run: $(EXECUTABLE)
-	$(EXECUTABLE) 
+run: build
+	main
+
+runfps: main
+	LIBGL_SHOW_FPS=1 main 2>&1 | \
+	tee /dev/stderr | sed -u -n -e '/^libGL: FPS = /{s/.* \([^ ]*\)= /\1/;p}' | \
+	osd_cat --lines=1 --color=yellow --outline=1 --pos=top --align=left
 
 
-re: clean $(EXECUTABLE)
+re: clean build
 
-rerun: clean $(EXECUTABLE)
-	$(EXECUTABLE)
+rerun: clean run
 
 
+source_dirs     := src src/utils src/field src/entities
+header_dirs     := src lib
+search_wildcard := $(wildcard $(addsuffix /*.cpp,$(source_dirs)))
+object_files    := $(patsubst %.cpp,%.o,$(search_wildcard))
+object_files    := $(notdir $(object_files))
+object_files    := $(addprefix target/,$(object_files))
+VPATH           := $(source_dirs)
+
+main: ./target $(object_files)
+	g++ $(ldflags) -o $@ $(object_files) $(libs)
+
+./target:
+	if ! [ -d ./target ]; then mkdir target; fi
+
+target/%.o: %.cpp
+	g++ $(cflags) -o $@ -MD $(addprefix -I,$(header_dirs)) $<
+
+include $(wildcard target/*.d)
+
+
+
+# clean
 clean:
-	-rm *.o $(EXECUTABLE)
-
-
-
-
-
-$(EXECUTABLE): \
-	main.o define.o init.o \
-	BotField.o Plant.o Bot.o BotGen.o Body.o Mineral.o \
-	CellPrinter.o Stat.o
-	g++ $(LDFLAGS) -o $(EXECUTABLE) \
-	main.o define.o init.o \
-	BotField.o Plant.o Bot.o BotGen.o Body.o Mineral.o \
-	CellPrinter.o Stat.o $(LIBS)
-
-main.o: main.cpp declare.hpp init.hpp \
-	BotField.hpp Cell.hpp Plant.hpp Bot.hpp Body.hpp Mineral.hpp \
-	CellPrinter.hpp Stat.hpp
-	g++ $(CFLAGS) -o main.o main.cpp
-
-
-
-define.o: define.cpp declare.hpp BotField.hpp Cell.hpp Plant.hpp Bot.hpp Body.hpp Mineral.hpp CellPrinter.hpp
-	g++ $(CFLAGS) -o define.o define.cpp
-
-
-
-init.o: init.cpp init.hpp declare.hpp Bot.hpp BotField.hpp CellPrinter.hpp
-	g++ $(CFLAGS) -o init.o init.cpp
-
-
-
-BotField.o: BotField.cpp BotField.hpp Body.hpp Bot.hpp Cell.hpp Mapping.hpp Mineral.hpp Plant.hpp 
-	g++ $(CFLAGS) -o BotField.o BotField.cpp
-
-
-
-Plant.o: Plant.cpp Plant.hpp BotField.hpp Cell.hpp
-	g++ $(CFLAGS) -o Plant.o Plant.cpp
-
-
-Bot.o: Bot.cpp Bot.hpp BotField.hpp BotGen.hpp Cell.hpp Plant.hpp Body.hpp Mineral.hpp
-	g++ $(CFLAGS) -o Bot.o Bot.cpp
-
-BotGen.o: BotGen.cpp BotGen.hpp
-	g++ $(CFLAGS) -o BotGen.o BotGen.cpp
-
-
-
-Body.o: Body.cpp Body.hpp Cell.hpp Mineral.hpp
-	g++ $(CFLAGS) -o Body.o Body.cpp
-
-
-Mineral.o: Mineral.cpp Mineral.hpp Cell.hpp Plant.hpp
-	g++ $(CFLAGS) -o Mineral.o Mineral.cpp
-
-
-
-
-
-CellPrinter.o: CellPrinter.cpp CellPrinter.hpp Cell.hpp Plant.hpp Bot.hpp BotField.hpp Body.hpp Mineral.hpp
-	g++ $(CFLAGS) -o CellPrinter.o CellPrinter.cpp
-
-
-Stat.o: Stat.cpp Stat.hpp
-	g++ $(CFLAGS) -o Stat.o Stat.cpp
+	-rm target/*.o main
 
 
 

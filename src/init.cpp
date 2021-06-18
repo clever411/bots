@@ -6,11 +6,12 @@
 
 #include <clever/SFML/HelpFunction.hpp>
 
+#include <entities/Bot.hpp>
+#include <field/BotField.hpp>
+#include <field/Cell.hpp>
+#include <utils/CellPrinter.hpp>
+
 #include "declare.hpp"
-#include "Bot.hpp"
-#include "BotField.hpp"
-#include "Cell.hpp"
-#include "CellPrinter.hpp"
 
 
 using namespace clever;
@@ -42,8 +43,8 @@ int const EN_LABEL_LENGTH = 15;
 int const EF_LABEL_LENGTH = 18;
 
 
-int const DEFAULT_FIELD_WIDTH = 120;
-int const DEFAULT_FIELD_HEIGHT = 240;
+int const DEFAULT_FIELD_WIDTH = 120 * 2 / 3;
+int const DEFAULT_FIELD_HEIGHT = 240 * 2 / 3;
 
 
 
@@ -54,7 +55,7 @@ int const DEFAULT_FIELD_HEIGHT = 240;
 // init functions
 void init_window()
 {
-	window.create(vmode, TITLE, Style::None);
+	window.create(vmode, TITLE, Style::Fullscreen);
 	window.setPosition({0u, 0u});
 	window.setFramerateLimit(FRAMERATE_LIMIT);
 	return;
@@ -189,7 +190,7 @@ void init_mapadapter()
 
 void init_font()
 {
-	font.loadFromFile( "Anonymous_Pro.ttf" );
+	font.loadFromFile("res/Anonymous_Pro.ttf");
 	return;
 }
 
